@@ -42,15 +42,16 @@ class Attitude(object):
         plt.figure(1);
         plt.subplot(211);
         plt.plot(self._dataSet._lsTimes,self._lsPitch,label="pitch");
-        plt.plot(self._dataSet._lsEkfTimes ,self._dataSet._lsEkfPitch,label="EKFpitch");
-        plt.ylabel('attitude(rad)')
+        plt.plot(self._dataSet._lsEkfTimes ,self._dataSet._lsEkfPitch,label="EKF2");
+        plt.ylabel('pitch(rad)')
         plt.title(self._strategy);
         plt.legend()
         plt.grid(True);
 
         plt.subplot(212);
         plt.plot(self._dataSet._lsTimes,self._lsRoll,label="roll");
-        plt.plot(self._dataSet._lsEkfTimes,self._dataSet._lsEkfRoll,label="EKFroll");
+        plt.plot(self._dataSet._lsEkfTimes,self._dataSet._lsEkfRoll,label="EKF2");
+        plt.ylabel('roll(rad)')
         plt.xlabel('time(s)')
         plt.grid(True);
         plt.show();
