@@ -9,6 +9,7 @@
 
 from CAttitude import Attitude
 from lib.Quaternion import DCM2Euler
+from lib.Quaternion import Quat2DCM
 import math
 
 class SO3Attitude(Attitude):
@@ -79,19 +80,7 @@ class SO3Attitude(Attitude):
                 self.NonlinearSO3AHRSupdate(gyro_x,gyro_y,gyro_z,-acc_x,-acc_y,-acc_z,mag_x,mag_y,mag_z,dt);
 
                 # Convert q->R, This R converts inertial frame to body frame.
-                Rot_matrix = [None]*9;
-                Rot_matrix[0] = self.q0q0 + self.q1q1 - self.q2q2 - self.q3q3;# 11
-                Rot_matrix[3] = 2.0 * (self.q1*self.q2 + self.q0*self.q3);  # 12
-                Rot_matrix[6] = 2.0 * (self.q1*self.q3 - self.q0*self.q2);  # 13
-                Rot_matrix[1] = 2.0 * (self.q1*self.q2 - self.q0*self.q3);  # 21
-                Rot_matrix[4] = self.q0q0 - self.q1q1 + self.q2q2 - self.q3q3;# 22
-                Rot_matrix[7] = 2.0 * (self.q2*self.q3 + self.q0*self.q1);  # 23
-                Rot_matrix[2] = 2.0 * (self.q1*self.q3 + self.q0*self.q2);  # 31
-                Rot_matrix[5] = 2.0 * (self.q2*self.q3 - self.q0*self.q1);  # 32
-                Rot_matrix[8] = self.q0q0 - self.q1q1 - self.q2q2 + self.q3q3;# 33
-
-                # dcm = [Rot_matrix0,Rot_matrix1,Rot_matrix2,Rot_matrix3,Rot_matrix4, \
-                # Rot_matrix5,Rot_matrix6,Rot_matrix7,Rot_matrix8];
+                Rot_matrix = Quat2DCM(self.q0, self.q1,self.q2,self.q3);
                 pitch,roll,yaw = DCM2Euler(Rot_matrix);
 
                 self._lsPitch.append(pitch);
