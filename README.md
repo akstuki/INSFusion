@@ -8,18 +8,16 @@ window, linux
 python3
 
 ## usage
-~
 main.py -s <sensorfile> -a <attfile> -m <method>  
- ~
- -s and -a are cmd args to give the datafile name ,the data format is px4 ulog  
+　-s and -a are cmd args to give the datafile name ,the data format is px4 ulog  
 　　-s give the sensor_compined file  
->>-a give the vechile attitude file  
--m to git the attitude cculator method   
->>i:integration  
->>a:accelameter  
->>c:complementary  
->>s:SO3
->>e:ekf  
+　　-a give the vechile attitude file  
+　-m to git the attitude cculator method   
+　　i:integration  
+　　a:accelameter  
+　　c:complementary  
+　　s:SO3
+　　e:ekf  
 
 ## test
 the test data are in test folder, below is one test result
