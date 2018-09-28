@@ -8,7 +8,9 @@ window, linux
 python3
 
 ## usage
+```bash
 main.py -s <sensorfile> -a <attfile> -m <method>  
+```
 　-s and -a are cmd args to give the datafile name ,the data format is [px4 ulog](https://github.com/PX4/pyulog)  
 　　-s give the sensor_compined file  
 　　-a give the vechile attitude file  
@@ -21,4 +23,7 @@ main.py -s <sensorfile> -a <attfile> -m <method>
 
 ## test
 the test data are in test folder, below is one test result
+```bash
+python main.py -m c
+```
 ![Image text](https://github.com/akstuki/INSFusion/blob/master/img/com.png)
