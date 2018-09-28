@@ -8,7 +8,9 @@ window, linux
 python3
 
 ## usage
+~
 main.py -s <sensorfile> -a <attfile> -m <method>  
+ ~
  -s and -a are cmd args to give the datafile name ,the data format is px4 ulog  
      -s give the sensor_compined file  
 >>-a give the vechile attitude file  
