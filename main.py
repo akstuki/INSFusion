@@ -30,7 +30,7 @@ def AttitudeFactory(method:str) -> Attitude:
     elif method == "a":
         return AccAttitude();
     elif method == "c":
-        return CompAttitude();
+        return CompAttitude(0.6);
     elif method == "s":
         return SO3Attitude();
     elif method == "e":

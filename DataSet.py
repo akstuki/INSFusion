@@ -51,7 +51,7 @@ class DataSet(object):
                 if lsField[0] == 'timestamp':
                     continue;
                 self._lsTimes.append(1e-6*float(lsField[0]));
-                self._lsDeltT.append(1e-6*float(lsField[4]));
+                self._lsDeltT.append(float(lsField[4]));
                 self._lsAcclX.append(float(lsField[6]));
                 self._lsAcclY.append(float(lsField[7]));
                 self._lsAcclZ.append(float(lsField[8]));

@@ -18,17 +18,22 @@ class IntAttitude(Attitude):
         self._strategy = "Int method";
         
     def calculateAtt(self):
-        lsGyros = zip(self._dataSet._lsGyroX,self._dataSet._lsGyroY,self._dataSet._lsGyroZ);
+        lsGyros = zip(self._dataSet._lsGyroX,self._dataSet._lsGyroY,self._dataSet._lsGyroZ,self._dataSet._lsDeltT);
         for gyro in lsGyros:
-            self._phi0   = self._phi0 + gyro[0];
-            self._theta0 = self._theta0 + gyro[1];
-            self._psi0   = self._psi0 + gyro[2];
+            dt = gyro[3];
+            self._theta0 = self._theta0 + dt*gyro[0];
+            self._phi0   = self._phi0   + dt*gyro[1];
+            self._psi0   = self._psi0   + dt*gyro[2];
 
-            self._lsPitch.append(self._phi0);
-            self._lsRoll.append(self._psi0);
+            self._lsPitch.append(self._theta0);
+            self._lsRoll.append(self._phi0);
+            self._lsYaw.append(self._psi0);
 
 def main():
-    att = IntAttitude('09_26_14_sensor_combined_0.csv');
+    sensorfile = r'test\09_26_14_sensor_combined_0.csv';
+    attfile = r'test\09_26_14_vehicle_attitude_0.csv'
+    att = IntAttitude();
+    att.loadData(sensorfile,attfile);
     att.calculateAtt();
     att.showFig();
 

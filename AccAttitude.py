@@ -17,7 +17,20 @@ class AccAttitude(Attitude):
 
     def calculateAtt(self):
         lsacclemeter = zip(self._dataSet._lsAcclX,self._dataSet._lsAcclY,self._dataSet._lsAcclZ);
-        for acc in lsacclemeter:
-            pitch,roll = self.accAtt(acc);
+        lsmag = zip(self._dataSet._lsMageX,self._dataSet._lsMageY,self._dataSet._lsMageZ);
+        for sensordata in zip(lsacclemeter,lsmag):
+            pitch,roll = self.accAtt(sensordata[0]);
             self._lsPitch.append(pitch);
             self._lsRoll.append(roll);
+            self._lsYaw.append(self.magHeading(sensordata[1],roll,pitch));
+
+def main():
+    sensorfile = r'test\09_26_14_sensor_combined_0.csv';
+    attfile = r'test\09_26_14_vehicle_attitude_0.csv'
+    att = AccAttitude();
+    att.loadData(sensorfile,attfile);
+    att.calculateAtt();
+    att.showFig();
+
+if __name__ == '__main__':
+    main()
