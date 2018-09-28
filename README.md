@@ -26,4 +26,4 @@ the test data are in test folder, below is one test result
 ```bash
 python main.py -m c
 ```
-![Image text](https://github.com/akstuki/INSFusion/blob/master/img/com.png)
+![Image text](https://github.com/akstuki/INSFusion/blob/master/img/so3.png)
