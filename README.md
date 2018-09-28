@@ -5,7 +5,7 @@ python project to caculate the AHRS, method: pure integration,accelmeter, EKF,co
 window, linux
 
 ## language
-python3
+python3 (3.5 or newer)
 
 ## usage
 ```bash
