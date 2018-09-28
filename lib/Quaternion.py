@@ -38,7 +38,7 @@ def Quat2DCM(q0:float,q1:float,q2:float,q3:float)->list:
     lsDCM.append(aSq - bSq - cSq + dSq);
     return lsDCM;
 
-def DCM2Euler(lsDCM:list):
+def DCM2Euler(lsDCM:list) -> (float,float,float):
     '''
     DCM=
     lsDCM[0] lsDCM[1] lsDCM[2]
