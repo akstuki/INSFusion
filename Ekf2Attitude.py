@@ -13,22 +13,63 @@ from CAttitude import Attitude
 from numpy import *
 import numpy as np
 from lib.Quaternion import Quat2Euler
+from enum import Enum
+
+class States(Enum):
+	X_q0 = 0
+	X_q1 = 1
+	X_q2 = 2
+	X_q3 = 3
+	X_bx = 4
+	X_by = 5
+	X_bz = 6
+	n_x  = 7
+
+class Obss(Enum):
+	y_roll = 0
+	y_pitch = 1
+	y_yaw = 2
+	n_y  = 3
 
 class EkfAttitude(Attitude):
     """docstring for EkfAttitude"""
     def __init__(self):
         super(EkfAttitude, self).__init__()
         self._strategy = "EKF";
-        self._Xs = mat([1.0,0,0,0,1.0*1e-3,1.0*1e-3,1.0*1e-3]).T;
-        self._P = 1e-1*mat(eye(7,7,dtype=float));
-        self._R = 1e-3*mat(eye(3,3,dtype=float));
-        self._Q = 1e-8*mat(eye(7,7,dtype=float));
+        self.reset();
 
     def reset(self):
         self._Xs = mat([1.0,0,0,0,1.0*1e-3,1.0*1e-3,1.0*1e-3]).T;
         self._P = 1e-1*mat(eye(7,7,dtype=float));
         self._R = 1e-3*mat(eye(3,3,dtype=float));
         self._Q = 1e-8*mat(eye(7,7,dtype=float));
+
+    def obsMatrix(self,q0:float,q1:float,q2:float,q3:float) -> matrix:
+        H = mat(zeros((3,7)));
+        q1sqaq2sqmul2s1 =2*(q1**2) + 2*(q2**2) - 1;
+        q1sqaq2sqmul2s1sq = q1sqaq2sqmul2s1**2;
+        q0q1aq2q3mul2 = 2*q0*q1 + 2*q2*q3
+        q0q1aq2q3mul2sq = q0q1aq2q3mul2**2;
+        H[0,0] = -(2*q1)/((q0q1aq2q3mul2sq/q1sqaq2sqmul2s1sq + 1)*(q1sqaq2sqmul2s1));
+        H[0,1] = -((2*q0)/(q1sqaq2sqmul2s1) - (4*q1*(q0q1aq2q3mul2))/q1sqaq2sqmul2s1sq)/(q0q1aq2q3mul2sq/q1sqaq2sqmul2s1sq + 1);
+        H[0,2] = -((2*q3)/(q1sqaq2sqmul2s1) - (4*q2*(q0q1aq2q3mul2))/q1sqaq2sqmul2s1sq)/(q0q1aq2q3mul2sq/q1sqaq2sqmul2s1sq + 1);
+        H[0,3] = -(2*q2)/((q0q1aq2q3mul2sq/q1sqaq2sqmul2s1sq + 1)*(q1sqaq2sqmul2s1));
+        q0q2sq1q3mul2 = 2*q0*q2 - 2*q1*q3;
+        q0q2sq1q3mul2sq = q0q2sq1q3mul2**2;
+        q0q2sq1q3mul2sqsubby1 = (1 - q0q2sq1q3mul2sq)**0.5;
+        H[1,0] =  (2*q2)/q0q2sq1q3mul2sqsubby1;
+        H[1,1] = -(2*q3)/q0q2sq1q3mul2sqsubby1;
+        H[1,2] =  (2*q0)/q0q2sq1q3mul2sqsubby1;
+        H[1,3] = -(2*q1)/q0q2sq1q3mul2sqsubby1;
+        q0q3aq1q2mul2 = 2*q0*q3 + 2*q1*q2;
+        q0q3aq1q2mul2sq = q0q3aq1q2mul2**2;
+        q2saq3smul2s1 = 2*(q2**2) + 2*(q3**2) - 1;
+        q2saq3smul2s1sq = q2saq3smul2s1**2;
+        H[2,0] = -(2*q3)/((q0q3aq1q2mul2sq/q2saq3smul2s1sq + 1)*(q2saq3smul2s1));
+        H[2,1] = -(2*q2)/((q0q3aq1q2mul2sq/q2saq3smul2s1sq + 1)*(q2saq3smul2s1));
+        H[2,2] = -((2*q1)/(q2saq3smul2s1) - (4*q2*(q0q3aq1q2mul2))/q2saq3smul2s1sq)/(q0q3aq1q2mul2sq/q2saq3smul2s1sq + 1);
+        H[2,3] = -((2*q0)/(q2saq3smul2s1) - (4*q3*(q0q3aq1q2mul2))/q2saq3smul2s1sq)/(q0q3aq1q2mul2sq/q2saq3smul2s1sq + 1);
+        return H;
 
     def accelemeterUpdate(self,accel:list,mag:list) -> (float,float,float):
         ax =  accel[0];
@@ -42,13 +83,7 @@ class EkfAttitude(Attitude):
         q2 = self._Xs[2,0];
         q3 = self._Xs[3,0];
 
-        H = mat(zeros((3,7)));
-        H[0,0:4] = [-(2*q1)/(((2*q0*q1 + 2*q2*q3)**2/(2*q1**2 + 2*q2**2 - 1)**2 + 1)*(2*q1**2 + 2*q2**2 - 1)), -((2*q0)/(2*q1**2 + 2*q2**2 - 1) - (4*q1*(2*q0*q1 + 2*q2*q3))/(2*q1**2 + 2*q2**2 - 1)**2)/((2*q0*q1 + 2*q2*q3)**2/(2*q1**2 + 2*q2**2 - 1)**2 + 1), -((2*q3)/(2*q1**2 + 2*q2**2 - 1) - (4*q2*(2*q0*q1 + 2*q2*q3))/(2*q1**2 + 2*q2**2 - 1)**2)/((2*q0*q1 + 2*q2*q3)**2/(2*q1**2 + 2*q2**2 - 1)**2 + 1),  -(2*q2)/(((2*q0*q1 + 2*q2*q3)**2/(2*q1**2 + 2*q2**2 - 1)**2 + 1)*(2*q1**2 + 2*q2**2 - 1))];
-        H[1,0] = (2*q2)/(1 - (2*q0*q2 - 2*q1*q3)**2)**(1/2);
-        H[1,1] = -(2*q3)/(1 - (2*q0*q2 - 2*q1*q3)**2)**(1/2);
-        H[1,2] = (2*q0)/(1 - (2*q0*q2 - 2*q1*q3)**2)**(1/2);
-        H[1,3]  = -(2*q1)/(1 - (2*q0*q2 - 2*q1*q3)**2)**(1/2);
-        H[2,0:4] = [ -(2*q3)/(((2*q0*q3 + 2*q1*q2)**2/(2*q2**2 + 2*q3**2 - 1)**2 + 1)*(2*q2**2 + 2*q3**2 - 1)), -(2*q2)/(((2*q0*q3 + 2*q1*q2)**2/(2*q2**2 + 2*q3**2 - 1)**2 + 1)*(2*q2**2 + 2*q3**2 - 1)), -((2*q1)/(2*q2**2 + 2*q3**2 - 1) - (4*q2*(2*q0*q3 + 2*q1*q2))/(2*q2**2 + 2*q3**2 - 1)**2)/((2*q0*q3 + 2*q1*q2)**2/(2*q2**2 + 2*q3**2 - 1)**2 + 1), -((2*q0)/(2*q2**2 + 2*q3**2 - 1) - (4*q3*(2*q0*q3 + 2*q1*q2))/(2*q2**2 + 2*q3**2 - 1)**2)/((2*q0*q3 + 2*q1*q2)**2/(2*q2**2 + 2*q3**2 - 1)**2 + 1)];
+        H = self.obsMatrix(self._Xs[0,0],self._Xs[1,0],self._Xs[2,0],self._Xs[3,0]);
         
         S = H*self._P*(H.T) + self._R;
         Kg = self._P* (H.T)*(S.I);
