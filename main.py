@@ -5,10 +5,10 @@
 * author  : XiaoqiangChen
 * mail    : 309905109@qq.com
 * history : 2018/09/26  1.0  new
+*           2018/09/29  1.0  changed to google python style
 '''
-import sys, getopt
-import math
-import matplotlib.pyplot as plt
+import sys
+import getopt
 from CAttitude import Attitude
 from AccAttitude import AccAttitude
 from IntAttitude import IntAttitude
@@ -16,51 +16,62 @@ from CompAttitude import CompAttitude
 from Ekf2Attitude import EkfAttitude
 from SO3Attitude import SO3Attitude
 
-def printHelp():
-    print ('main.py -s <sensorfile> -a <attfile> -m <method>')
+def print_help():
+    '''
+    print cmd help doc
+    '''
+    print('main.py -s <sensorfile> -a <attfile> -m <method>')
     print('\t-m:')
     print('\t\ti:integration')
     print('\t\ta:accelameter')
     print('\t\tc:complementary')
     print('\t\te:ekf')
-   
-def AttitudeFactory(method:str) -> Attitude:
-    if method == "i":
-        return IntAttitude();
-    elif method == "a":
-        return AccAttitude();
-    elif method == "c":
-        return CompAttitude(0.6);
-    elif method == "s":
-        return SO3Attitude();
-    elif method == "e":
-        return EkfAttitude();
 
-def main(argv):
-    sensorfile = r'test\09_26_14_sensor_combined_0.csv';
+def attitude_factory(method: str) -> Attitude:
+    '''
+    construct the attitude caculator object
+    '''
+    att = None
+    if method == "i":
+        att = IntAttitude()
+    elif method == "a":
+        att = AccAttitude()
+    elif method == "c":
+        att = CompAttitude(0.6)
+    elif method == "s":
+        att = SO3Attitude()
+    elif method == "e":
+        att = EkfAttitude()
+    else:
+        pass
+    return att
+
+def main(argv: list):
+    '''main.'''
+    sensorfile = r'test\09_26_14_sensor_combined_0.csv'
     attfile = r'test\09_26_14_vehicle_attitude_0.csv'
-    method = "c";
+    method = "c"
 
     try:
-        opts, args = getopt.getopt(argv,"hs:a:m:",["sensorf=","attf=","method="])
+        opts, _ = getopt.getopt(argv, "hs:a:m:", ["sensorf=", "attf=", "method="])
     except getopt.GetoptError:
-        print ('main.py -s <sensorfile> -a <attfile>')
+        print_help()
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
-            print ('main.py -s <sensorfile> -a <attfile>')
+            print_help()
             sys.exit()
         elif opt in ("-s", "--sensorf"):
             sensorfile = arg
         elif opt in ("-a", "--attf"):
             attfile = arg
-        elif opt in ("-m","--method"):
+        elif opt in ("-m", "--method"):
             method = arg
 
-    att = AttitudeFactory(method);
-    att.loadData(sensorfile,attfile);
-    att.calculateAtt();
-    att.showFig();
+    att = attitude_factory(method)
+    att.loadData(sensorfile, attfile)
+    att.calculateAtt()
+    att.showFig()
 
 if __name__ == '__main__':
-    main(sys.argv[1:]);
+    main(sys.argv[1:])
