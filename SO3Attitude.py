@@ -152,7 +152,7 @@ class SO3Attitude(Attitude):
         self.q3q3 = self.q_3 * self.q_3
 
     def update_quaternion(self, g_x: float, g_y: float, g_z: float, d_t: float):
-        '''Time derivative of quaternion. q_dot = 0.5*q\otimes omega.'''
+        '''Time update of quaternion.'''
         # ! q_k = q_{k-1} + dt*\dot{q}
         # ! \dot{q} = 0.5*q \otimes P(\omega)
         self.dq0 = 0.5*(self.q_1 * g_x + self.q_2 * g_y + self.q_3 * g_z)
@@ -167,6 +167,7 @@ class SO3Attitude(Attitude):
         self.q_3 += d_t*self.dq3
 
     def gyro_pid(self, gyros: list, halfex: float, halfey: float, halfez: float, d_t: float):
+        '''pi feedback to gyro'''
         if math.isclose(halfex, 0.0) or math.isclose(halfey, 0.0) or math.isclose(halfez, 0.0):
             print('skip pi')
         else:
