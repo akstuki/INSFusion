@@ -6,11 +6,12 @@
 * mail    : 309905109@qq.com
 * history : 2018/09/26  1.0  new
 '''
-
-from CAttitude import Attitude
+import math
+from attitude import Attitude
+from attitude import acc_att
+from attitude import mag_heading
 from lib.Quaternion import DCM2Euler
 from lib.Quaternion import Quat2DCM
-import math
 
 class SO3Attitude(Attitude):
     """docstring for SO3Attitude"""
@@ -48,11 +49,9 @@ class SO3Attitude(Attitude):
         self.twoKi = 0.05;
         self.twoKp = 1.0;
 
-    def calculateAtt(self):
-        lsGyros = zip(self._dataSet._lsDeltT,self._dataSet._lsGyroX,self._dataSet._lsGyroY,self._dataSet._lsGyroZ);
-        lsAccs = zip(self._dataSet._lsAcclX,self._dataSet._lsAcclY,self._dataSet._lsAcclZ);
-        lsmag = zip(self._dataSet._lsMageX,self._dataSet._lsMageY,self._dataSet._lsMageZ);
-        for imu in zip(lsGyros,lsAccs,lsmag):
+    def calculate_att(self):
+        imu_data = self._data_set.get_imu_data()
+        for imu in imu_data:
             if self._initialized == False:
                 self._gyro_offset_x += imu[0][1];
                 self._gyro_offset_y += imu[0][2];
@@ -63,9 +62,9 @@ class SO3Attitude(Attitude):
                     self._gyro_offset_x /= self._gyro_offset_count;
                     self._gyro_offset_y /= self._gyro_offset_count;
                     self._gyro_offset_z /= self._gyro_offset_count;
-                self._lsPitch.append(None);
-                self._lsRoll.append(None);
-                self._lsYaw.append(None);
+                self._ls_pitch.append(None);
+                self._ls_roll.append(None);
+                self._ls_yaw.append(None);
             else:
                 gyro_x = imu[0][1] - self._gyro_offset_x;
                 gyro_y = imu[0][2] - self._gyro_offset_y;
@@ -83,9 +82,9 @@ class SO3Attitude(Attitude):
                 Rot_matrix = Quat2DCM(self.q0, self.q1,self.q2,self.q3);
                 pitch,roll,yaw = DCM2Euler(Rot_matrix);
 
-                self._lsPitch.append(pitch);
-                self._lsRoll.append(roll);
-                self._lsYaw.append(yaw);
+                self._ls_pitch.append(pitch);
+                self._ls_roll.append(roll);
+                self._ls_yaw.append(yaw);
 
     def NonlinearSO3AHRSupdate(self,gx:float,gy:float,gz:float,ax:float,ay:float,az:float, \
             mx:float,my:float,mz:float,dt:float):
@@ -151,7 +150,9 @@ class SO3Attitude(Attitude):
                 gy += self.gyro_bias_y;
                 gz += self.gyro_bias_z;
             else:
-                gyro_bias_x=gyro_bias_y=gyro_bias_z=0.0;
+                self.gyro_bias_x = 0.0
+                self.gyro_bias_y = 0.0
+                self.gyro_bias_z = 0.0
 
             # Apply proportional feedback
             gx += self.twoKp * halfex;
@@ -193,8 +194,8 @@ class SO3Attitude(Attitude):
 
             
     def NonlinearSO3AHRSinit(self,ax:float,ay:float,az:float, mx:float,my:float,mz:float):
-        initialPitch,initialRoll = self.accAtt([ax,ay,az]);
-        initialHdg = self.magHeading([mx,my,mz],initialPitch,initialRoll);
+        initialPitch,initialRoll = acc_att([ax,ay,az]);
+        initialHdg = mag_heading([mx,my,mz],initialPitch,initialRoll);
 
         cosRoll = math.cos(initialRoll * 0.5);
         sinRoll = math.sin(initialRoll * 0.5);
@@ -226,9 +227,9 @@ def main():
     sensorfile = r'test\09_26_14_sensor_combined_0.csv';
     attfile = r'test\09_26_14_vehicle_attitude_0.csv'
     att = SO3Attitude();
-    att.loadData(sensorfile,attfile);
-    att.calculateAtt();
-    att.showFig();
+    att.load_data(sensorfile,attfile);
+    att.calculate_att();
+    att.show_fig();
 
 if __name__ == '__main__':
     main()

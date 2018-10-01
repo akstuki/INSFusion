@@ -7,7 +7,7 @@
 * history : 2018/09/26  1.0  new
 '''
 
-from CAttitude import Attitude
+from attitude import Attitude
 
 class AccAttitude(Attitude):
     """docstring for ClassName"""
@@ -15,21 +15,21 @@ class AccAttitude(Attitude):
         super(AccAttitude, self).__init__()
         self._strategy = "accelerometer method";
 
-    def calculateAtt(self):
+    def calculate_att(self):
         lsacclemeter = zip(self._dataSet._lsAcclX,self._dataSet._lsAcclY,self._dataSet._lsAcclZ);
         lsmag = zip(self._dataSet._lsMageX,self._dataSet._lsMageY,self._dataSet._lsMageZ);
         for sensordata in zip(lsacclemeter,lsmag):
-            pitch,roll = self.accAtt(sensordata[0]);
-            self._lsPitch.append(pitch);
-            self._lsRoll.append(roll);
-            self._lsYaw.append(self.magHeading(sensordata[1],roll,pitch));
+            pitch,roll = self.acc_att(sensordata[0]);
+            self._ls_pitch.append(pitch);
+            self._ls_roll.append(roll);
+            self._ls_yaw.append(self.mag_heading(sensordata[1],roll,pitch));
 
 def main():
     sensorfile = r'test\09_26_14_sensor_combined_0.csv';
     attfile = r'test\09_26_14_vehicle_attitude_0.csv'
     att = AccAttitude();
-    att.loadData(sensorfile,attfile);
-    att.calculateAtt();
+    att.load_data(sensorfile,attfile);
+    att.calculate_att();
     att.showFig();
 
 if __name__ == '__main__':

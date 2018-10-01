@@ -7,7 +7,10 @@
 * history : 2018/09/26  1.0  new
 '''
 
-from CAttitude import Attitude
+from attitude import Attitude
+from attitude import acc_att
+from attitude import mag_heading
+
 class CompAttitude(Attitude):
     """docstring for ClassName"""
     _phi0 = 0;
@@ -20,29 +23,27 @@ class CompAttitude(Attitude):
         self._strategy = "comp method";
         self._a = a;
 
-    def calculateAtt(self):
-        lsGyros = zip(self._dataSet._lsDeltT,self._dataSet._lsGyroX,self._dataSet._lsGyroY,self._dataSet._lsGyroZ);
-        lsAccs = zip(self._dataSet._lsAcclX,self._dataSet._lsAcclY,self._dataSet._lsAcclZ);
-        lsmag = zip(self._dataSet._lsMageX,self._dataSet._lsMageY,self._dataSet._lsMageZ);
-        for imu in zip(lsGyros,lsAccs,lsmag):
-            pitch,roll = self.accAtt(imu[1]);
+    def calculate_att(self):
+        imu_data = self._data_set.get_imu_data()
+        for imu in imu_data:
+            pitch,roll = acc_att(imu[1]);
             dt = imu[0][0];
             self._theta0   = self._a*(self._theta0   + dt*imu[0][0])+(1-self._a)*pitch;
             self._phi0 = self._a*(self._phi0 + dt*imu[0][1])+(1-self._a)*roll;
-            yaw = self.magHeading(imu[2],self._theta0,self._phi0)
+            yaw = mag_heading(imu[2],self._theta0,self._phi0)
             self._psi0   = self._a*(self._psi0   + dt*imu[0][2])+(1-self._a)*yaw;
 
-            self._lsPitch.append(self._theta0);
-            self._lsRoll.append(self._phi0);
-            self._lsYaw.append(self._psi0)
+            self._ls_pitch.append(self._theta0);
+            self._ls_roll.append(self._phi0);
+            self._ls_yaw.append(self._psi0)
 
 def main():
     sensorfile = r'test\09_26_14_sensor_combined_0.csv';
     attfile = r'test\09_26_14_vehicle_attitude_0.csv'
     att = CompAttitude(0.7);
-    att.loadData(sensorfile,attfile);
-    att.calculateAtt();
-    att.showFig();
+    att.load_data(sensorfile,attfile);
+    att.calculate_att();
+    att.show_fig();
 
 if __name__ == '__main__':
     main()

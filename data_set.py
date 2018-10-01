@@ -63,12 +63,18 @@ class DataSet():
                 self._lsMageY.append(float(ls_fields[12]))
                 self._lsMageZ.append(float(ls_fields[13]))
 
-    def get_imu_data(self):
+    def get_imu_data(self) -> zip:
         '''return imu data'''
         ls_gyros = zip(self._lsDeltT, self._lsGyroX, self._lsGyroY, self._lsGyroZ)
         ls_accls = zip(self._lsAcclX, self._lsAcclY, self._lsAcclZ)
         ls_magas = zip(self._lsMageX, self._lsMageY, self._lsMageZ)
         return zip(ls_gyros, ls_accls, ls_magas)
+
+    def get_ekf_attitude(self) -> (list, list, list, list):
+        return self._lsEkfTimes, self._lsEkfPitch, self._lsEkfRoll, self._lsEkfYaw
+
+    def get_imu_times(self) -> list:
+        return self._lsTimes
 
     def load_px4_att(self):
         '''' timestamp rollspeed   pitchspeed  yawspeed    q[0]    q[1]    q[2]    q[3]'''

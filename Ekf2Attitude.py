@@ -16,7 +16,7 @@ from numpy import matrix
 from numpy import mat
 from numpy import eye
 from lib.Quaternion import Quat2Euler
-from CAttitude import Attitude
+from attitude import Attitude
 
 class States(Enum):
 	X_q0 = 0
@@ -83,8 +83,8 @@ class EkfAttitude(Attitude):
         s_k = h_k*self._P*(h_k.T) + self._R;
         k_k = self._P* (h_k.T)*(s_k.I);
 
-        pitch,roll = self.accAtt(accel);
-        yaw = self.magHeading(mag,pitch,roll);
+        pitch,roll = self.acc_att(accel);
+        yaw = self.mag_heading(mag,pitch,roll);
         y_k = mat([roll,pitch,yaw]).T;
         
         recip_norm = 1.0/math.sqrt(self._Xs[0,0]**2 + self._Xs[1,0]**2 + self._Xs[2,0]**2 + self._Xs[3,0]**2);
@@ -121,7 +121,7 @@ class EkfAttitude(Attitude):
         self._Xs = f_k*self._Xs
         self._P = f_k*self._P*(f_k.T) + self._Q
 
-    def calculateAtt(self):        
+    def calculate_att(self):        
         imu_data = self._dataSet.get_imu_data()
         for imu in imu_data:
             self.predict(imu[0])    
@@ -134,16 +134,16 @@ class EkfAttitude(Attitude):
             	print('reset');
             	self.reset();
 
-            self._lsPitch.append(pitch_hat);
-            self._lsRoll.append(roll_hat);
-            self._lsYaw.append(yaw_hat);
+            self._ls_pitch.append(pitch_hat);
+            self._ls_roll.append(roll_hat);
+            self._ls_yaw.append(yaw_hat);
             
 def main():
     sensorfile = r'test\09_26_14_sensor_combined_0.csv';
     attfile = r'test\09_26_14_vehicle_attitude_0.csv'
     att = EkfAttitude();
-    att.loadData(sensorfile,attfile);
-    att.calculateAtt();
+    att.load_data(sensorfile,attfile);
+    att.calculate_att();
     att.showFig();
 
 if __name__ == '__main__':

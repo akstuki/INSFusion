@@ -9,7 +9,7 @@
 '''
 import sys
 import getopt
-from CAttitude import Attitude
+from attitude import Attitude
 from AccAttitude import AccAttitude
 from IntAttitude import IntAttitude
 from CompAttitude import CompAttitude
@@ -69,9 +69,9 @@ def main(argv: list):
             method = arg
 
     att = attitude_factory(method)
-    att.loadData(sensorfile, attfile)
-    att.calculateAtt()
-    att.showFig()
+    att.load_data(sensorfile, attfile)
+    att.calculate_att()
+    att.show_fig()
 
 if __name__ == '__main__':
     main(sys.argv[1:])
