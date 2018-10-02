@@ -10,11 +10,11 @@
 import sys
 import getopt
 from attitude import Attitude
-from AccAttitude import AccAttitude
-from IntAttitude import IntAttitude
-from CompAttitude import CompAttitude
+from accattitude import AccAttitude
+from intattitude import IntAttitude
+from comattitude import CompAttitude
 from Ekf2Attitude import EkfAttitude
-from SO3Attitude import SO3Attitude
+from so3attitude import SO3Attitude
 
 def print_help():
     '''

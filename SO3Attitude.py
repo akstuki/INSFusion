@@ -10,11 +10,13 @@ import math
 from attitude import Attitude
 from attitude import acc_att
 from attitude import mag_heading
-from lib.Quaternion import DCM2Euler
-from lib.Quaternion import Quat2DCM
+from lib.quaternion import dcm2euler
+from lib.quaternion import quat2dcm
 
 class SO3Attitude(Attitude):
     """docstring for SO3Attitude"""
+
+    # pylint: disable=too-many-instance-attributes
     _initialized = False
 
     def __init__(self):
@@ -74,8 +76,8 @@ class SO3Attitude(Attitude):
                 self.so3_update([gyro_x, gyro_y, gyro_z], resver_accel, imu[2], delta_t)
 
                 # Convert q->R, This R converts inertial frame to body frame.
-                rot_matrix = Quat2DCM(self.q_0, self.q_1, self.q_2, self.q_3)
-                pitch, roll, yaw = DCM2Euler(rot_matrix)
+                rot_matrix = quat2dcm(self.q_0, self.q_1, self.q_2, self.q_3)
+                pitch, roll, yaw = dcm2euler(rot_matrix)
 
                 self._ls_pitch.append(pitch)
                 self._ls_roll.append(roll)
@@ -83,6 +85,7 @@ class SO3Attitude(Attitude):
 
     def maga_correct(self, maga: list, halfex: float, halfey: float, halfez: float) -> tuple:
         '''direction of magnetic field to correct gyro'''
+        # pylint: disable=too-many-locals
         if math.isclose(maga[0], 0.0) and math.isclose(maga[1], 0.0) and math.isclose(maga[2], 0.0):
             print('mag=0', maga)
         else:
@@ -168,6 +171,7 @@ class SO3Attitude(Attitude):
 
     def gyro_pid(self, gyros: list, halfex: float, halfey: float, halfez: float, d_t: float):
         '''pi feedback to gyro'''
+        # pylint: disable=too-many-arguments
         if math.isclose(halfex, 0.0) or math.isclose(halfey, 0.0) or math.isclose(halfez, 0.0):
             print('skip pi')
         else:

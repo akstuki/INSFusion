@@ -8,8 +8,8 @@
 '''
 
 import os
-# from Quaternion import Quat2Euler
-from lib.Quaternion import Quat2Euler
+# from Quaternion import quat2euler
+from lib.quaternion import quat2euler
 class DataSet():
     """docstring for DataSet"""
     _filename = ""
@@ -89,7 +89,7 @@ class DataSet():
                     continue
                 self._lsEkfTimes.append(1e-6*float(ls_fields[0]))
                 q_0, q_1, q_2, q_3 = ls_fields[4:8]
-                phi, theta, psi = Quat2Euler(float(q_0), float(q_1), float(q_2), float(q_3))
+                phi, theta, psi = quat2euler(float(q_0), float(q_1), float(q_2), float(q_3))
                 self._lsEkfPitch.append(phi)
                 self._lsEkfRoll.append(theta)
                 self._lsEkfYaw.append(psi)
