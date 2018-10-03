@@ -1,5 +1,5 @@
 '''
-* main.py : Attitude caculator using SO3
+* main.py : attitude caculator using SO3
 *
 *          Copyright (C) 2018 by XiaoqiangChen, All rights reserved.
 * author  : XiaoqiangChen
@@ -7,13 +7,13 @@
 * history : 2018/09/26  1.0  new
 '''
 import math
-from attitude import Attitude
+from attitude import attitude
 from attitude import acc_att
 from attitude import mag_heading
 from lib.quaternion import dcm2euler
 from lib.quaternion import quat2dcm
 
-class SO3Attitude(Attitude):
+class SO3Attitude(attitude):
     """docstring for SO3Attitude"""
 
     # pylint: disable=too-many-instance-attributes
@@ -52,6 +52,7 @@ class SO3Attitude(Attitude):
         self._two_kp = 1.0
 
     def calculate_att(self):
+        '''so3 main cycle'''
         imu_data = self._data_set.get_imu_data()
         for imu in imu_data:
             if not self._initialized:
@@ -252,12 +253,8 @@ def normalise_v3(data: list) -> (float, float, float):
 
 def main():
     '''test main'''
-    sensorfile = r'test\09_26_14_sensor_combined_0.csv'
-    attfile = r'test\09_26_14_vehicle_attitude_0.csv'
     att = SO3Attitude()
-    att.load_data(sensorfile, attfile)
-    att.calculate_att()
-    att.show_fig()
+    att.test()
 
 if __name__ == '__main__':
     main()

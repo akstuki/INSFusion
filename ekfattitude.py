@@ -1,5 +1,5 @@
 '''
-* main.py : Attitude caculator using ekf
+* main.py : attitude caculator using ekf
 *
 *          Copyright (C) 2018 by XiaoqiangChen, All rights reserved.
 * author  : XiaoqiangChen
@@ -15,13 +15,14 @@ from numpy import matrix
 from numpy import mat
 from numpy import eye
 from lib.quaternion import quat2euler
-from attitude import Attitude
+from attitude import attitude
 from attitude import acc_att
 from attitude import mag_heading
 
-class EkfAttitude(Attitude):
+class EkfAttitude(attitude):
     """docstring for EkfAttitude"""
     def __init__(self):
+        # pylint: disable=invalid-name
         super(EkfAttitude, self).__init__()
         self._strategy = "EKF"
         self._Xs = mat([1.0, 0, 0, 0, 1.0*1e-3, 1.0*1e-3, 1.0*1e-3]).T
@@ -30,12 +31,15 @@ class EkfAttitude(Attitude):
         self._Q = 1e-7*mat(eye(7, 7, dtype=float))
 
     def reset(self):
+        '''reset kalman filter to init state'''
         self._Xs = mat([1.0, 0, 0, 0, 1.0*1e-3, 1.0*1e-3, 1.0*1e-3]).T
         self._P = 1e-1*mat(eye(7, 7, dtype=float))
         self._R = 1e-3*mat(eye(3, 3, dtype=float))
         self._Q = 1e-7*mat(eye(7, 7, dtype=float))
 
-    def accelemeterUpdate(self, accel: list, mag: list):
+    def accel_correct(self, accel: list, mag: list):
+        '''measurement update - accel'''
+        # pylint: disable=too-many-locals
         h_k = obsMatrix(self._Xs[0, 0], self._Xs[1, 0], self._Xs[2, 0], self._Xs[3, 0])
 
         s_k = h_k*self._P*(h_k.T) + self._R
@@ -45,7 +49,8 @@ class EkfAttitude(Attitude):
         yaw = mag_heading(mag, pitch, roll)
         y_k = mat([roll, pitch, yaw]).T
 
-        recip_norm = 1.0/math.sqrt(self._Xs[0, 0]**2 + self._Xs[1, 0]**2 + self._Xs[2, 0]**2 + self._Xs[3, 0]**2)
+        recip_norm = 1.0/math.sqrt(self._Xs[0, 0]**2 + self._Xs[1, 0]**2 + self._Xs[2, 0]**2 \
+            + self._Xs[3, 0]**2)
         self._Xs[0, 0] *= recip_norm
         self._Xs[1, 0] *= recip_norm
         self._Xs[2, 0] *= recip_norm
@@ -60,6 +65,7 @@ class EkfAttitude(Attitude):
         self._P = (self._P+self._P.T)*0.5
 
     def predict(self, imu: list):
+        '''time update of kalman filter'''
         w_x = imu[1]
         w_y = imu[2]
         w_z = imu[3]
@@ -81,12 +87,13 @@ class EkfAttitude(Attitude):
         self._P = f_k*self._P*(f_k.T) + self._Q
 
     def calculate_att(self):
+        '''kalman filter main cycle'''
         imu_data = self._data_set.get_imu_data()
         for imu in imu_data:
             self.predict(imu[0])
 
             # ---update----
-            self.accelemeterUpdate(imu[1], imu[2])
+            self.accel_correct(imu[1], imu[2])
 
             pitch_hat, roll_hat, yaw_hat = \
             quat2euler(self._Xs[0, 0], self._Xs[1, 0], self._Xs[2, 0], self._Xs[3, 0])
@@ -99,6 +106,10 @@ class EkfAttitude(Attitude):
             self._ls_yaw.append(yaw_hat)
 
 def obsMatrix(q0: float, q1: float, q2: float, q3: float) -> matrix:
+    '''accel measurement obs matrix caculation'''
+    # pylint: disable=invalid-name
+    # pylint: disable=line-too-long
+    # pylint: disable=too-many-locals
     H = mat(zeros((3, 7)))
     q1sqaq2sqmul2s1 = 2*(q1**2) + 2*(q2**2) - 1
     q1sqaq2sqmul2s1sq = q1sqaq2sqmul2s1**2
@@ -126,12 +137,9 @@ def obsMatrix(q0: float, q1: float, q2: float, q3: float) -> matrix:
     return H
 
 def main():
-    sensorfile = r'test\09_26_14_sensor_combined_0.csv'
-    attfile = r'test\09_26_14_vehicle_attitude_0.csv'
+    '''main test'''
     att = EkfAttitude()
-    att.load_data(sensorfile, attfile)
-    att.calculate_att()
-    att.show_fig()
+    att.test()
 
 if __name__ == '__main__':
     main()

@@ -1,5 +1,5 @@
 '''
-* main.py : Attitude caculator caller
+* main.py : attitude caculator caller
 *
 *          Copyright (C) 2018 by XiaoqiangChen, All rights reserved.
 * author  : XiaoqiangChen
@@ -9,11 +9,11 @@
 '''
 import sys
 import getopt
-from attitude import Attitude
+from attitude import attitude
 from accattitude import AccAttitude
 from intattitude import IntAttitude
 from comattitude import CompAttitude
-from Ekf2Attitude import EkfAttitude
+from ekfattitude import EkfAttitude
 from so3attitude import SO3Attitude
 
 def print_help():
@@ -27,7 +27,7 @@ def print_help():
     print('\t\tc:complementary')
     print('\t\te:ekf')
 
-def attitude_factory(method: str) -> Attitude:
+def attitude_factory(method: str) -> attitude:
     '''
     construct the attitude caculator object
     '''

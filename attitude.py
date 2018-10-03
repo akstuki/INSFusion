@@ -1,5 +1,5 @@
 '''
-* main.py : Attitude caculator parent class
+* main.py : attitude caculator parent class
 *
 *          Copyright (C) 2018 by XiaoqiangChen, All rights reserved.
 * author  : XiaoqiangChen
@@ -10,8 +10,8 @@ import math
 import matplotlib.pyplot as plt
 from data_set import DataSet
 
-class Attitude():
-    """docstring for Attitude"""
+class attitude():
+    """docstring for attitude"""
     def __init__(self):
         self._strategy = "none"
         self._data_set = None
@@ -64,6 +64,14 @@ class Attitude():
 
         plt.show()
 
+    def test(self):
+        '''main test'''
+        sensorfile = r'test\09_26_14_sensor_combined_0.csv'
+        attfile = r'test\09_26_14_vehicle_attitude_0.csv'
+        self.load_data(sensorfile, attfile)
+        self.calculate_att()
+        self.show_fig()
+
 def acc_att(acc: list) -> tuple:
     '''use body accelemeters to caculate pitch and roll'''
     norm = math.sqrt(acc[0]**2 + acc[2]**2)
@@ -80,7 +88,7 @@ def mag_heading(mag: list, roll: float, pitch: float) -> float:
 
 def main():
     '''test'''
-    # att = Attitude()
+    # att = attitude()
     pass
 
 if __name__ == '__main__':

@@ -71,9 +71,11 @@ class DataSet():
         return zip(ls_gyros, ls_accls, ls_magas)
 
     def get_ekf_attitude(self) -> (list, list, list, list):
+        '''pixhawk attitude: time,pitch,roll,yaw'''
         return self._lsEkfTimes, self._lsEkfPitch, self._lsEkfRoll, self._lsEkfYaw
 
     def get_imu_times(self) -> list:
+        '''return sensors timestamp'''
         return self._lsTimes
 
     def load_px4_att(self):

@@ -1,5 +1,5 @@
 '''
-* main.py : Attitude caculator using complementary filter
+* main.py : attitude caculator using complementary filter
 *
 *          Copyright (C) 2018 by XiaoqiangChen, All rights reserved.
 * author  : XiaoqiangChen
@@ -7,11 +7,11 @@
 * history : 2018/09/26  1.0  new
 '''
 
-from attitude import Attitude
+from attitude import attitude
 from attitude import acc_att
 from attitude import mag_heading
 
-class CompAttitude(Attitude):
+class CompAttitude(attitude):
     """docstring for ClassName"""
     _phi0 = 0
     _theta0 = 0
@@ -24,6 +24,7 @@ class CompAttitude(Attitude):
         self._a = a
 
     def calculate_att(self):
+        '''complementary filter main cycle'''
         imu_data = self._data_set.get_imu_data()
         for imu in imu_data:
             pitch, roll = acc_att(imu[1])
@@ -39,12 +40,8 @@ class CompAttitude(Attitude):
 
 def main():
     '''test main'''
-    sensorfile = r'test\09_26_14_sensor_combined_0.csv'
-    attfile = r'test\09_26_14_vehicle_attitude_0.csv'
     att = CompAttitude(0.7)
-    att.load_data(sensorfile, attfile)
-    att.calculate_att()
-    att.show_fig()
+    att.test()
 
 if __name__ == '__main__':
     main()
