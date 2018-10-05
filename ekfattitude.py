@@ -95,8 +95,8 @@ class EkfAttitude(attitude):
             # ---update----
             self.accel_correct(imu[1], imu[2])
 
-            pitch_hat, roll_hat, yaw_hat = \
-            quat2euler(self._Xs[0, 0], self._Xs[1, 0], self._Xs[2, 0], self._Xs[3, 0])
+            q0, q1, q2, q3 = self._Xs[0, 0], self._Xs[1, 0], self._Xs[2, 0], self._Xs[3, 0]
+            pitch_hat, roll_hat, yaw_hat = quat2euler(q0, q1, q2, q3)
             if math.isnan(pitch_hat) or math.isnan(roll_hat) or math.isnan(yaw_hat):
                 print('reset')
                 self.reset()

@@ -66,12 +66,10 @@ class SO3Attitude(attitude):
         if not self._initialized:
             self.calibrate_gyros(imu)     
         else:
-            gyro_x = imu[0][1] - self._gyro_offset_x
-            gyro_y = imu[0][2] - self._gyro_offset_y
-            gyro_z = imu[0][3] - self._gyro_offset_z
+            gyros = self.add_gyro_bias(imu)
             delta_t = imu[0][0]
             resver_accel = [a*(-1.0) for a in imu[1]]
-            self.so3_update([gyro_x, gyro_y, gyro_z], resver_accel, imu[2], delta_t)
+            self.so3_update(gyros, resver_accel, imu[2], delta_t)
 
             # Convert q->R, This R converts inertial frame to body frame.
             rot_matrix = quat2dcm(self.q_0, self.q_1, self.q_2, self.q_3)
@@ -79,6 +77,7 @@ class SO3Attitude(attitude):
         return pitch, roll, yaw
     
     def calibrate_gyros(self, imu: tuple):
+        ''' '''
         self._gyro_offset_x += imu[0][1]
         self._gyro_offset_y += imu[0][2]
         self._gyro_offset_z += imu[0][3]
@@ -88,6 +87,12 @@ class SO3Attitude(attitude):
             self._gyro_offset_x /= self._gyro_offset_count
             self._gyro_offset_y /= self._gyro_offset_count
             self._gyro_offset_z /= self._gyro_offset_count
+
+    def add_gyro_bias(self, imu) -> list:
+        gyro_x = imu[0][1] - self._gyro_offset_x
+        gyro_y = imu[0][2] - self._gyro_offset_y
+        gyro_z = imu[0][3] - self._gyro_offset_z
+        return [gyro_x, gyro_y, gyro_z]
 
     def maga_correct(self, maga: list, halfex: float, halfey: float, halfez: float) -> tuple:
         '''direction of magnetic field to correct gyro'''
