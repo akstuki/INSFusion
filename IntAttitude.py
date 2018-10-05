@@ -21,14 +21,14 @@ class IntAttitude(attitude):
         '''integration main cycle'''
         imu_data = self._data_set.get_imu_data()
         for imu in imu_data:
-            d_t = imu[0][0]
-            self._theta0 = self._theta0 + d_t*imu[0][1]
-            self._phi0 = self._phi0 + d_t*imu[0][2]
-            self._psi0 = self._psi0 + d_t*imu[0][3]
+            self.integrate(imu)
+            self.add_pitch_roll_yaw(self._theta0, self._phi0, self._psi0)
 
-            self._ls_pitch.append(self._theta0)
-            self._ls_roll.append(self._phi0)
-            self._ls_yaw.append(self._psi0)
+    def integrate(self, imu: tuple):
+        d_t = imu[0][0]
+        self._theta0 = self._theta0 + d_t*imu[0][1]
+        self._phi0 = self._phi0 + d_t*imu[0][2]
+        self._psi0 = self._psi0 + d_t*imu[0][3]
 
 def main():
     '''test main'''

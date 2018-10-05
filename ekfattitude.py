@@ -101,9 +101,7 @@ class EkfAttitude(attitude):
                 print('reset')
                 self.reset()
 
-            self._ls_pitch.append(pitch_hat)
-            self._ls_roll.append(roll_hat)
-            self._ls_yaw.append(yaw_hat)
+            self.add_pitch_roll_yaw(pitch_hat, roll_hat, yaw_hat)
 
 def obsMatrix(q0: float, q1: float, q2: float, q3: float) -> matrix:
     '''accel measurement obs matrix caculation'''

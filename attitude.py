@@ -28,6 +28,12 @@ class attitude():
     def calculate_att(self):
         '''implement in subclass'''
         pass
+    
+    def add_pitch_roll_yaw(self, pitch: float, roll: float, yaw: float):
+        ''' '''
+        self._ls_pitch.append(pitch)
+        self._ls_roll.append(roll)
+        self._ls_yaw.append(yaw)
 
     def show_fig(self):
         '''show fig of calculated attitude and pixhawk attitude'''

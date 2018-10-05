@@ -27,16 +27,21 @@ class CompAttitude(attitude):
         '''complementary filter main cycle'''
         imu_data = self._data_set.get_imu_data()
         for imu in imu_data:
-            pitch, roll = acc_att(imu[1])
-            d_t = imu[0][0]
-            self._theta0 = self._a*(self._theta0   + d_t*imu[0][0])+(1-self._a)*pitch
-            self._phi0 = self._a*(self._phi0 + d_t*imu[0][1])+(1-self._a)*roll
-            yaw = mag_heading(imu[2], self._theta0, self._phi0)
-            self._psi0 = self._a*(self._psi0 + d_t*imu[0][2]) + (1-self._a)*yaw
+            self.filter_pitch_roll_yaw(imu)
+            self.add_pitch_roll_yaw(self._theta0, self._phi0, self._psi0)
 
-            self._ls_pitch.append(self._theta0)
-            self._ls_roll.append(self._phi0)
-            self._ls_yaw.append(self._psi0)
+    def filter_pitch_roll_yaw(self, imu:tuple):
+        pitch, roll = acc_att(imu[1])
+        d_t = imu[0][0]
+        self._theta0 = self.siso_filter(self._theta0, pitch, d_t, imu[0][1])
+        self._phi0 = self.siso_filter(self._phi0, roll, d_t, imu[0][2])
+        yaw = mag_heading(imu[2], self._theta0, self._phi0)
+        self._psi0 = self.siso_filter(self._psi0, yaw, d_t, imu[0][3])
+
+    def siso_filter(self, last_hat: float, obs: float, dt: float, gyro: float) -> float:
+        """ """
+        x_hat = self._a*(last_hat + dt*gyro)+(1-self._a)*obs
+        return x_hat
 
 def main():
     '''test main'''

@@ -22,9 +22,8 @@ class AccAttitude(attitude):
         imu_data = self._data_set.get_imu_data()
         for imu in imu_data:
             pitch, roll = acc_att(imu[1])
-            self._ls_pitch.append(pitch)
-            self._ls_roll.append(roll)
-            self._ls_yaw.append(mag_heading(imu[2], roll, pitch))
+            yaw = mag_heading(imu[2], roll, pitch)
+            self.add_pitch_roll_yaw(pitch, roll, yaw)
 
 def main():
     '''test main'''
