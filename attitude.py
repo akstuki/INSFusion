@@ -43,7 +43,7 @@ class attitude():
         ekf_times, ekf_pitchs, ekf_rolls, ekf_yaws = self._data_set.get_ekf_attitude()
         imu_times = self._data_set.get_imu_times()
 
-        plt.figure(1)
+        plt.figure(self._strategy)
         plt.subplot(311)
         plt.plot(imu_times, self._ls_pitch, label="pitch")
         plt.plot(ekf_times, ekf_pitchs, label="EKF2")

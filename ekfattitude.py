@@ -6,8 +6,7 @@
 * mail    : 309905109@qq.com
 * history : 2018/09/26  1.0  new
 '''
-# ?????
-#  success at matlab .m code, when migrate to python still not work now
+# TODO: success at matlab .m code, when migrate to python still not work now
 
 import math
 from numpy import zeros
@@ -18,6 +17,9 @@ from lib.quaternion import quat2euler
 from attitude import attitude
 from attitude import acc_att
 from attitude import mag_heading
+from accelerometer import accelerometer
+from gyroscope import gyroscope
+from magnetometer import magnetometer
 
 class EkfAttitude(attitude):
     """docstring for EkfAttitude"""
@@ -37,7 +39,7 @@ class EkfAttitude(attitude):
         self._R = 1e-3*mat(eye(3, 3, dtype=float))
         self._Q = 1e-7*mat(eye(7, 7, dtype=float))
 
-    def accel_correct(self, accel: list, mag: list):
+    def accel_correct(self, accel: accelerometer, mag: magnetometer):
         '''measurement update - accel'''
         # pylint: disable=too-many-locals
         h_k = obsMatrix(self._Xs[0, 0], self._Xs[1, 0], self._Xs[2, 0], self._Xs[3, 0])
@@ -45,8 +47,8 @@ class EkfAttitude(attitude):
         s_k = h_k*self._P*(h_k.T) + self._R
         k_k = self._P* (h_k.T)*(s_k.I)
 
-        pitch, roll = acc_att(accel)
-        yaw = mag_heading(mag, pitch, roll)
+        pitch, roll = accel.acc_att()
+        yaw = mag.mag_heading(pitch, roll)
         y_k = mat([roll, pitch, yaw]).T
 
         recip_norm = 1.0/math.sqrt(self._Xs[0, 0]**2 + self._Xs[1, 0]**2 + self._Xs[2, 0]**2 \
@@ -64,12 +66,11 @@ class EkfAttitude(attitude):
         self._P = (mat(eye(7, 7, dtype=float))-k_k*h_k)*self._P
         self._P = (self._P+self._P.T)*0.5
 
-    def predict(self, imu: list):
+    def predict(self, d_t: float, gyros: gyroscope):
         '''time update of kalman filter'''
-        w_x = imu[1]
-        w_y = imu[2]
-        w_z = imu[3]
-        d_t = imu[0]
+        w_x = gyros._gyro_x
+        w_y = gyros._gyro_y
+        w_z = gyros._gyro_z
         q_s = self._Xs[0, 0]
         q_x = self._Xs[1, 0]
         q_y = self._Xs[2, 0]
@@ -88,12 +89,12 @@ class EkfAttitude(attitude):
 
     def calculate_att(self):
         '''kalman filter main cycle'''
-        imu_data = self._data_set.get_imu_data()
+        imu_data = self._data_set.get_sensors_imu()
         for imu in imu_data:
-            self.predict(imu[0])
+            self.predict(imu[0], imu[1])
 
             # ---update----
-            self.accel_correct(imu[1], imu[2])
+            self.accel_correct(imu[2], imu[3])
 
             q0, q1, q2, q3 = self._Xs[0, 0], self._Xs[1, 0], self._Xs[2, 0], self._Xs[3, 0]
             pitch_hat, roll_hat, yaw_hat = quat2euler(q0, q1, q2, q3)

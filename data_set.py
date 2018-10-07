@@ -8,22 +8,16 @@
 '''
 
 import os
-# from Quaternion import quat2euler
 from lib.quaternion import quat2euler
+from accelerometer import accelerometer
+from gyroscope import gyroscope
+from magnetometer import magnetometer
+
 class DataSet():
     """docstring for DataSet"""
     _filename = ""
     _lsTimes = []
     _lsDeltT = []
-    _lsAcclX = []
-    _lsAcclY = []
-    _lsAcclZ = []
-    _lsGyroX = []
-    _lsGyroY = []
-    _lsGyroZ = []
-    _lsMageX = []
-    _lsMageY = []
-    _lsMageZ = []
 
     _attitude_filename = ""
     _lsEkfTimes = []
@@ -33,6 +27,9 @@ class DataSet():
     def __init__(self, filename: str, attFileName: str):
         self._filename = filename
         self._attitude_filename = attFileName
+        self._ls_accel = []
+        self._ls_gyro = []
+        self._ls_mage = []
 
     def load_imu_data(self):
         '''read data from px4 vehicle attitude.csv log file'''
@@ -49,26 +46,26 @@ class DataSet():
                 ls_fields = line.strip('\n').split(',')
                 if len(ls_fields) < 17:
                     continue
-                if ls_fields[0] == 'timestamp':
+                if self.is_header(ls_fields):
                     continue
                 self._lsTimes.append(1e-6*float(ls_fields[0]))
                 self._lsDeltT.append(float(ls_fields[4]))
-                self._lsAcclX.append(float(ls_fields[6]))
-                self._lsAcclY.append(float(ls_fields[7]))
-                self._lsAcclZ.append(float(ls_fields[8]))
-                self._lsGyroX.append(float(ls_fields[1]))
-                self._lsGyroY.append(float(ls_fields[2]))
-                self._lsGyroZ.append(float(ls_fields[3]))
-                self._lsMageX.append(float(ls_fields[11]))
-                self._lsMageY.append(float(ls_fields[12]))
-                self._lsMageZ.append(float(ls_fields[13]))
+                accel = accelerometer(float(ls_fields[6]), float(ls_fields[7]), float(ls_fields[8]))
+                gyro = gyroscope(float(ls_fields[1]), float(ls_fields[2]), float(ls_fields[3]))
+                magn = magnetometer(float(ls_fields[11]), float(ls_fields[12]), float(ls_fields[13]))
+                self._ls_accel.append(accel)
+                self._ls_gyro.append(gyro)
+                self._ls_mage.append(magn)
 
-    def get_imu_data(self) -> zip:
+    def is_header(self, ls_fields: list) -> bool:
+        if ls_fields[0] == 'timestamp':
+            return True
+        else:
+            return False
+
+    def get_sensors_imu(self) -> zip:
         '''return imu data'''
-        ls_gyros = zip(self._lsDeltT, self._lsGyroX, self._lsGyroY, self._lsGyroZ)
-        ls_accls = zip(self._lsAcclX, self._lsAcclY, self._lsAcclZ)
-        ls_magas = zip(self._lsMageX, self._lsMageY, self._lsMageZ)
-        return zip(ls_gyros, ls_accls, ls_magas)
+        return zip(self._lsDeltT, self._ls_gyro, self._ls_accel, self._ls_mage)
 
     def get_ekf_attitude(self) -> (list, list, list, list):
         '''pixhawk attitude: time,pitch,roll,yaw'''
@@ -87,7 +84,7 @@ class DataSet():
                 ls_fields = line.strip('\n').split(',')
                 if len(ls_fields) < 8:
                     continue
-                if ls_fields[0] == 'timestamp':
+                if self.is_header(ls_fields):
                     continue
                 self._lsEkfTimes.append(1e-6*float(ls_fields[0]))
                 q_0, q_1, q_2, q_3 = ls_fields[4:8]

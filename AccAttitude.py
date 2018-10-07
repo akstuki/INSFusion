@@ -19,10 +19,12 @@ class AccAttitude(attitude):
 
     def calculate_att(self):
         '''accel method main cycle'''
-        imu_data = self._data_set.get_imu_data()
+        imu_data = self._data_set.get_sensors_imu()
         for imu in imu_data:
-            pitch, roll = acc_att(imu[1])
-            yaw = mag_heading(imu[2], roll, pitch)
+            accel = imu[2]
+            magn = imu[3]
+            pitch, roll = accel.acc_att()
+            yaw = magn.mag_heading(roll, pitch)
             self.add_pitch_roll_yaw(pitch, roll, yaw)
 
 def main():

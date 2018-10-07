@@ -25,6 +25,7 @@ def print_help():
     print('\t\ti:integration')
     print('\t\ta:accelameter')
     print('\t\tc:complementary')
+    print('\t\ts:so3')
     print('\t\te:ekf')
 
 def attitude_factory(method: str) -> attitude:

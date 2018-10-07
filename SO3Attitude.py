@@ -12,6 +12,10 @@ from attitude import acc_att
 from attitude import mag_heading
 from lib.quaternion import dcm2euler
 from lib.quaternion import quat2dcm
+from lib.quaternion import quat2euler
+from accelerometer import accelerometer
+from gyroscope import gyroscope
+from magnetometer import magnetometer
 
 class SO3Attitude(attitude):
     """docstring for SO3Attitude"""
@@ -53,7 +57,7 @@ class SO3Attitude(attitude):
 
     def calculate_att(self):
         '''so3 main cycle'''
-        imu_data = self._data_set.get_imu_data()
+        imu_data = self._data_set.get_sensors_imu()
         for imu in imu_data:
             pitch, roll, yaw = self.so3_pitch_roll_yaw(imu)
             self.add_pitch_roll_yaw(pitch, roll, yaw)
@@ -64,23 +68,21 @@ class SO3Attitude(attitude):
         roll = None
         yaw = None
         if not self._initialized:
-            self.calibrate_gyros(imu)     
+            self.calibrate_gyros(imu[1])     
         else:
-            gyros = self.add_gyro_bias(imu)
-            delta_t = imu[0][0]
-            resver_accel = [a*(-1.0) for a in imu[1]]
-            self.so3_update(gyros, resver_accel, imu[2], delta_t)
-
-            # Convert q->R, This R converts inertial frame to body frame.
-            rot_matrix = quat2dcm(self.q_0, self.q_1, self.q_2, self.q_3)
-            pitch, roll, yaw = dcm2euler(rot_matrix)
+            gyros = self.add_gyro_bias(imu[1])
+            delta_t = imu[0]
+            # resver_accel = [a*(-1.0) for a in imu[1]]
+            self.so3_update(gyros, imu[2], imu[3], delta_t)
+            
+            pitch, roll, yaw = quat2euler(self.q_0, self.q_1, self.q_2, self.q_3)
         return pitch, roll, yaw
     
-    def calibrate_gyros(self, imu: tuple):
+    def calibrate_gyros(self, gyros: gyroscope):
         ''' '''
-        self._gyro_offset_x += imu[0][1]
-        self._gyro_offset_y += imu[0][2]
-        self._gyro_offset_z += imu[0][3]
+        self._gyro_offset_x += gyros._gyro_x
+        self._gyro_offset_y += gyros._gyro_y
+        self._gyro_offset_z += gyros._gyro_z
         self._gyro_offset_count += 1
         if self._gyro_offset_count == 1000:
             self._initialized = True
@@ -88,19 +90,17 @@ class SO3Attitude(attitude):
             self._gyro_offset_y /= self._gyro_offset_count
             self._gyro_offset_z /= self._gyro_offset_count
 
-    def add_gyro_bias(self, imu) -> list:
-        gyro_x = imu[0][1] - self._gyro_offset_x
-        gyro_y = imu[0][2] - self._gyro_offset_y
-        gyro_z = imu[0][3] - self._gyro_offset_z
+    def add_gyro_bias(self, gyros: gyroscope) -> list:
+        gyro_x = gyros._gyro_x - self._gyro_offset_x
+        gyro_y = gyros._gyro_y - self._gyro_offset_y
+        gyro_z = gyros._gyro_z - self._gyro_offset_z
         return [gyro_x, gyro_y, gyro_z]
 
-    def maga_correct(self, maga: list, halfex: float, halfey: float, halfez: float) -> tuple:
+    def maga_correct(self, maga: magnetometer, halfex: float, halfey: float, halfez: float) -> tuple:
         '''direction of magnetic field to correct gyro'''
         # pylint: disable=too-many-locals
-        if math.isclose(maga[0], 0.0) and math.isclose(maga[1], 0.0) and math.isclose(maga[2], 0.0):
-            print('mag=0', maga)
-        else:
-            m_x, m_y, m_z = normalise_v3(maga)
+        if maga.is_valid():
+            m_x, m_y, m_z = maga.normalised()
 
             # Reference direction of Earth's magnetic field
             h_x = 2.0*(m_x * (0.5-self.q2q2-self.q3q3) + \
@@ -125,13 +125,11 @@ class SO3Attitude(attitude):
 
         return halfex, halfey, halfez
 
-    def accel_correct(self, accel: list, halfex: float, halfey: float, halfez: float) -> tuple:
+    def accel_correct(self, accel: accelerometer, halfex: float, halfey: float, halfez: float) -> tuple:
         '''using gravity direction to correct gyro'''
-        if math.isclose(accel[0], 0.0) \
-        and math.isclose(accel[1], 0.0) and math.isclose(accel[2], 0.0):
-            print('acc=0', accel)
-        else:
-            a_x, a_y, a_z = normalise_v3(accel)
+        if accel.is_valid():
+            accel.reverse()
+            a_x, a_y, a_z = accel.normalised()
 
             # Estimated direction of gravity and magnetic field
             halfvx = self.q1q3 - self.q0q2
@@ -207,15 +205,14 @@ class SO3Attitude(attitude):
 
         return gyros[0], gyros[1], gyros[2]
 
-    def so3_update(self, gyros: list, accel: list, maga: list, d_t: float):
+    def so3_update(self, gyros: list, accel: accelerometer, maga: magnetometer, d_t: float):
         '''attitude update main cycle'''
         halfex = 0.0
         halfey = 0.0
         halfez = 0.0
         if not self._filter_inited:
             self._filter_inited = True
-            resver_accel = [a*(-1.0) for a in accel]
-            self.so3_init(resver_accel, maga)
+            self.so3_init(accel, maga)
 
         halfex, halfey, halfez = self.maga_correct(maga, halfex, halfey, halfez)
 
@@ -226,10 +223,10 @@ class SO3Attitude(attitude):
         self.update_quaternion(g_x, g_y, g_z, d_t)
         self.normalise_quaternion()
 
-    def so3_init(self, accels: list, mags: list):
+    def so3_init(self, accels: accelerometer, mags: magnetometer):
         '''caculate init attitude using accel and mag, then initlize quaternion'''
-        init_pitch, init_roll = acc_att(accels)
-        init_yaw = mag_heading(mags, init_pitch, init_roll)
+        init_pitch, init_roll = accels.acc_att()
+        init_yaw = mags.mag_heading(init_pitch, init_roll)
 
         cos_rol = math.cos(init_roll * 0.5)
         sin_rol = math.sin(init_roll * 0.5)
@@ -252,14 +249,6 @@ class SO3Attitude(attitude):
         self.q2q2 = self.q_2 * self.q_2
         self.q2q3 = self.q_2 * self.q_3
         self.q3q3 = self.q_3 * self.q_3
-
-def normalise_v3(data: list) -> (float, float, float):
-    '''normalise sensor data like accel , maga...'''
-    reciprocal_norm = 1.0/math.sqrt(data[0]**2 + data[1]**2 + data[2]**2)
-    d_x = data[0]*reciprocal_norm
-    d_y = data[1]*reciprocal_norm
-    d_z = data[2]*reciprocal_norm
-    return d_x, d_y, d_z
 
 def main():
     '''test main'''
