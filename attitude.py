@@ -25,9 +25,14 @@ class attitude():
         self._data_set.load_imu_data()
         self._data_set.load_px4_att()
 
+    def remove_allresults(self):
+        self._ls_pitch.clear()
+        self._ls_roll.clear()
+        self._ls_yaw.clear()
+
     def calculate_att(self):
         '''implement in subclass'''
-        pass
+        self.remove_allresults()
     
     def add_pitch_roll_yaw(self, pitch: float, roll: float, yaw: float):
         ''' '''

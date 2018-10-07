@@ -41,6 +41,7 @@ class DataSet():
         if not os.path.exists(self._filename):
             print("sensors file [{filename}] not exist".format(filename=self._filename))
             return
+        self.remove_imus()
         with open(self._filename, 'rt') as fp_imu:
             for line in fp_imu:
                 ls_fields = line.strip('\n').split(',')
@@ -56,6 +57,13 @@ class DataSet():
                 self._ls_accel.append(accel)
                 self._ls_gyro.append(gyro)
                 self._ls_mage.append(magn)
+
+    def remove_imus(self):
+        self._lsTimes.clear()
+        self._lsDeltT.clear()
+        self._ls_accel.clear()
+        self._ls_gyro.clear()
+        self._ls_mage.clear()
 
     def is_header(self, ls_fields: list) -> bool:
         if ls_fields[0] == 'timestamp':
@@ -79,6 +87,7 @@ class DataSet():
         '''' timestamp rollspeed   pitchspeed  yawspeed    q[0]    q[1]    q[2]    q[3]'''
         if not os.path.exists(self._attitude_filename):
             return
+        self.remove_px4_atts()
         with open(self._attitude_filename, 'rt') as fp_att:
             for line in fp_att:
                 ls_fields = line.strip('\n').split(',')
@@ -92,6 +101,12 @@ class DataSet():
                 self._lsEkfPitch.append(phi)
                 self._lsEkfRoll.append(theta)
                 self._lsEkfYaw.append(psi)
+
+    def remove_px4_atts(self):
+        self._lsEkfTimes.clear()
+        self._lsEkfPitch.clear()
+        self._lsEkfRoll.clear()
+        self._lsEkfYaw.clear()
 
 if __name__ == '__main__':
     IMU_FILE = r'test\09_26_14_sensor_combined_0.csv'

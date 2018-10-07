@@ -25,7 +25,7 @@ class SO3Attitude(attitude):
 
     def __init__(self):
         super(SO3Attitude, self).__init__()
-        self._strateg_y = "SO3"
+        self._strategy = "SO3"
         self._gyro_offset_x = 0
         self._gyro_offset_y = 0
         self._gyro_offset_z = 0
