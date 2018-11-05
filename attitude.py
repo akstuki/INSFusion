@@ -46,15 +46,13 @@ class attitude():
         if not self._ls_pitch:
             print('no result')
             return
-        ekf_times, ekf_pitchs, ekf_rolls, ekf_yaws = self._data_set.get_ekf_attitude()
+        # ekf_times, ekf_pitchs, ekf_rolls, ekf_yaws = self._data_set.get_ekf_attitude()
         imu_times = self._data_set.get_imu_times()
 
         plt.figure(self._strategy)
         plt.subplot(311)
         pitch_deg = [c*57.2957795 for c in self._ls_pitch]
         plt.plot(imu_times, pitch_deg, label="pitch")
-        if len(ekf_times)>0:
-            plt.plot(ekf_times, ekf_pitchs, label="EKF2")
         plt.ylabel('pitch(deg)')
         plt.title(self._strategy)
         plt.legend()
@@ -64,8 +62,6 @@ class attitude():
         plt.subplot(312)
         roll_deg = [c*57.2957795 for c in self._ls_roll]
         plt.plot(imu_times, roll_deg, label="roll")
-        if len(ekf_times)>0:
-            plt.plot(ekf_times, ekf_rolls, label="EKF2")
         plt.ylabel('roll(deg)')
         plt.xlabel('time(s)')
         plt.legend()
@@ -75,8 +71,6 @@ class attitude():
         plt.subplot(313)
         yaw_deg = [c*57.2957795 for c in self._ls_yaw]
         plt.plot(imu_times, yaw_deg, label="yaw")
-        if len(ekf_times)>0:
-            plt.plot(ekf_times, ekf_yaws, label="EKF2")
         plt.ylabel('yaw(deg)')
         plt.xlabel('time(s)')
         plt.legend()
