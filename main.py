@@ -49,9 +49,9 @@ def attitude_factory(method: str) -> attitude:
 
 def main(argv: list):
     '''main.'''
-    sensorfile = r'test\09_26_14_sensor_combined_0.csv'
+    sensorfile = r'test\OpneFlightData.csv'
     attfile = r'test\09_26_14_vehicle_attitude_0.csv'
-    method = "c"
+    method = "i"
 
     try:
         opts, _ = getopt.getopt(argv, "hs:a:m:", ["sensorf=", "attf=", "method="])

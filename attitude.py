@@ -22,8 +22,9 @@ class attitude():
     def load_data(self, imu_file_name: str, att_file_name: str):
         '''read pixhawk log file'''
         self._data_set = DataSet(imu_file_name, att_file_name)
-        self._data_set.load_imu_data()
-        self._data_set.load_px4_att()
+        # self._data_set.load_imu_data()
+        # self._data_set.load_px4_att()
+        self._data_set.load_open_imu_data()
 
     def remove_allresults(self):
         self._ls_pitch.clear()
@@ -50,28 +51,37 @@ class attitude():
 
         plt.figure(self._strategy)
         plt.subplot(311)
-        plt.plot(imu_times, self._ls_pitch, label="pitch")
-        plt.plot(ekf_times, ekf_pitchs, label="EKF2")
-        plt.ylabel('pitch(rad)')
+        pitch_deg = [c*57.2957795 for c in self._ls_pitch]
+        plt.plot(imu_times, pitch_deg, label="pitch")
+        if len(ekf_times)>0:
+            plt.plot(ekf_times, ekf_pitchs, label="EKF2")
+        plt.ylabel('pitch(deg)')
         plt.title(self._strategy)
         plt.legend()
         plt.grid(True)
+        plt.grid(linestyle='--')
 
         plt.subplot(312)
-        plt.plot(imu_times, self._ls_roll, label="roll")
-        plt.plot(ekf_times, ekf_rolls, label="EKF2")
-        plt.ylabel('roll(rad)')
+        roll_deg = [c*57.2957795 for c in self._ls_roll]
+        plt.plot(imu_times, roll_deg, label="roll")
+        if len(ekf_times)>0:
+            plt.plot(ekf_times, ekf_rolls, label="EKF2")
+        plt.ylabel('roll(deg)')
         plt.xlabel('time(s)')
         plt.legend()
         plt.grid(True)
+        plt.grid(linestyle='--')
 
         plt.subplot(313)
-        plt.plot(imu_times, self._ls_yaw, label="yaw")
-        plt.plot(ekf_times, ekf_yaws, label="EKF2")
-        plt.ylabel('yaw(rad)')
+        yaw_deg = [c*57.2957795 for c in self._ls_yaw]
+        plt.plot(imu_times, yaw_deg, label="yaw")
+        if len(ekf_times)>0:
+            plt.plot(ekf_times, ekf_yaws, label="EKF2")
+        plt.ylabel('yaw(deg)')
         plt.xlabel('time(s)')
         plt.legend()
         plt.grid(True)
+        plt.grid(linestyle='--')
 
         plt.show()
 

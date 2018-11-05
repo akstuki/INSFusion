@@ -25,7 +25,7 @@ class SO3Attitude(attitude):
 
     def __init__(self):
         super(SO3Attitude, self).__init__()
-        self._strategy = "SO3"
+        self._strategy = "AHRS"
         self._gyro_offset_x = 0
         self._gyro_offset_y = 0
         self._gyro_offset_z = 0
@@ -64,9 +64,9 @@ class SO3Attitude(attitude):
 
     def so3_pitch_roll_yaw(self, imu: tuple) -> (float, float, float):
         ''' '''
-        pitch = None
-        roll = None
-        yaw = None
+        pitch = 0
+        roll = 0
+        yaw = 0
         if not self._initialized:
             self.calibrate_gyros(imu[1])     
         else:
@@ -84,7 +84,7 @@ class SO3Attitude(attitude):
         self._gyro_offset_y += gyros._gyro_y
         self._gyro_offset_z += gyros._gyro_z
         self._gyro_offset_count += 1
-        if self._gyro_offset_count == 1000:
+        if self._gyro_offset_count == 10:
             self._initialized = True
             self._gyro_offset_x /= self._gyro_offset_count
             self._gyro_offset_y /= self._gyro_offset_count

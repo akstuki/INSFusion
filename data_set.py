@@ -31,6 +31,36 @@ class DataSet():
         self._ls_gyro = []
         self._ls_mage = []
 
+    def load_open_imu_data(self):
+        '''read data from px4 vehicle attitude.csv log file'''
+        # (0-4)   timestamp   gyro_rad[0] gyro_rad[1] gyro_rad[2] gyro_integral_dt
+        # (5-7)   accelerometer_timestamp_relative    accelerometer_m_s2[0]   accelerometer_m_s2[1]
+        # (8-9)   accelerometer_m_s2[2]   accelerometer_integral_dt
+        # (10-12) magnetometer_timestamp_relative magnetometer_ga[0]  magnetometer_ga[1]
+        # (13-16) magnetometer_ga[2]  baro_timestamp_relative baro_alt_meter  baro_temp_celcius
+        if not os.path.exists(self._filename):
+            print("sensors file [{filename}] not exist".format(filename=self._filename))
+            return
+        self.remove_imus()
+        timestamp_sec = 0
+        M_PI_F = 3.14159265358979323846
+        with open(self._filename, 'rt') as fp_imu:
+            for line in fp_imu:
+                ls_fields = line.strip('\n').split(',')
+                if len(ls_fields) < 17:
+                    continue
+                if ls_fields[0] == 'ias':
+                    continue
+                self._lsTimes.append(timestamp_sec)
+                timestamp_sec = timestamp_sec + 0.05
+                self._lsDeltT.append(0.05)
+                accel = accelerometer(float(ls_fields[2])*9.8, float(ls_fields[3])*9.8, float(ls_fields[4])*9.8)
+                gyro = gyroscope(float(ls_fields[5])*M_PI_F/180, float(ls_fields[6])*M_PI_F/180, float(ls_fields[7])*M_PI_F/180)
+                magn = magnetometer(float(ls_fields[8])*1e-3, float(ls_fields[9])*1e-3, float(ls_fields[10])*1e-3)
+                self._ls_accel.append(accel)
+                self._ls_gyro.append(gyro)
+                self._ls_mage.append(magn)
+
     def load_imu_data(self):
         '''read data from px4 vehicle attitude.csv log file'''
         # (0-4)   timestamp   gyro_rad[0] gyro_rad[1] gyro_rad[2] gyro_integral_dt
