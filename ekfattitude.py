@@ -27,6 +27,7 @@ class EkfAttitude(attitude):
         # pylint: disable=invalid-name
         super(EkfAttitude, self).__init__()
         self._strategy = "EKF"
+       '''_Xs = [q0, q1, q2, q3, p, q, r]^T '''
         self._Xs = mat([1.0, 0, 0, 0, 1.0*1e-3, 1.0*1e-3, 1.0*1e-3]).T
         self._P = 1e-1*mat(eye(7, 7, dtype=float))
         self._R = 1e-3*mat(eye(3, 3, dtype=float))
