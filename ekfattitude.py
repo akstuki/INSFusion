@@ -6,6 +6,20 @@
 * mail    : 309905109@qq.com
 * history : 2018/09/26  1.0  new
 '''
+
+'''Steps for EKF: 
+*  Prediction: 
+*             (1) Predicted State Estimate
+*             (2) Predicted Covariance Estimate
+*  Update:
+*             (1) Innovation Covariance Calculation
+*             (2) Kalman Gain Calculation
+*             (3) Update State Estimate
+*             (4) Update Covariance Estimate
+*            (Steps copied from wikipedia)
+*
+* '''
+
 # TODO: success at matlab .m code, when migrate to python still not work now
 
 import math
@@ -44,8 +58,9 @@ class EkfAttitude(attitude):
         '''measurement update - accel'''
         # pylint: disable=too-many-locals
         h_k = obsMatrix(self._Xs[0, 0], self._Xs[1, 0], self._Xs[2, 0], self._Xs[3, 0])
-
+        #Innovation Covariance Calculation
         s_k = h_k*self._P*(h_k.T) + self._R
+        #Kalman Gain Calculation
         k_k = self._P* (h_k.T)*(s_k.I)
 
         pitch, roll = accel.acc_att()
@@ -63,7 +78,9 @@ class EkfAttitude(attitude):
         quat2euler(self._Xs[0, 0], self._Xs[1, 0], self._Xs[2, 0], self._Xs[3, 0])
         y_predict = mat([roll_predict, pitch_predit, yaw_predict]).T
 
+        #Update State Estimate
         self._Xs = self._Xs + k_k*(y_k - y_predict)
+        #Update Covariance Estimate
         self._P = (mat(eye(7, 7, dtype=float))-k_k*h_k)*self._P
         self._P = (self._P+self._P.T)*0.5
 
@@ -85,7 +102,9 @@ class EkfAttitude(attitude):
         jkbi_a[3, :] = [w_z, w_y, -w_x, 0, q_y, -q_x, -q_s]
 
         f_k = mat(eye(7, 7, dtype=float)) + 0.5*jkbi_a*d_t
+        #Predicted state estimate
         self._Xs = f_k*self._Xs
+        #predicted covariance estimate
         self._P = f_k*self._P*(f_k.T) + self._Q
 
     def calculate_att(self):
