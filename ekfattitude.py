@@ -107,9 +107,6 @@ class EkfAttitude(attitude):
         jkbi_a[2, :] = [w_y, -w_z, 0, w_x, -q_z, -q_s, q_x]
         jkbi_a[3, :] = [w_z, w_y, -w_x, 0, q_y, -q_x, -q_s]
 
- ''' *  q_dot = 0.5 * omega * q
-     *  q_k = q_(k-1) + q_dot * dt     
- '''
         f_k = mat(eye(7, 7, dtype=float)) + 0.5*jkbi_a*d_t
         #Predicted state estimate
         self._Xs = f_k*self._Xs
