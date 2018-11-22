@@ -95,12 +95,21 @@ class EkfAttitude(attitude):
         q_z = self._Xs[3, 0]
 
         # ---predict-----
+ ''' *  q(t+1) = exp(1/2*delta_theta) * q(t)
+     *  q(t+1) = (I + delta_theta / 2) * q(t) *******Taylor Expansion
+     *  delta_theta = theta(t+1) - theta(t)
+     *              = jkbi_a * _Xs * dt
+ ''' 
+     
         jkbi_a = mat(zeros((7, 7)))
         jkbi_a[0, :] = [0, -w_x, -w_y, -w_z, q_x, q_y, q_z]
         jkbi_a[1, :] = [w_x, 0, w_z, -w_y, -q_s, q_z, -q_y]
         jkbi_a[2, :] = [w_y, -w_z, 0, w_x, -q_z, -q_s, q_x]
         jkbi_a[3, :] = [w_z, w_y, -w_x, 0, q_y, -q_x, -q_s]
 
+ ''' *  q_dot = 0.5 * omega * q
+     *  q_k = q_(k-1) + q_dot * dt     
+ '''
         f_k = mat(eye(7, 7, dtype=float)) + 0.5*jkbi_a*d_t
         #Predicted state estimate
         self._Xs = f_k*self._Xs
@@ -129,6 +138,13 @@ def obsMatrix(q0: float, q1: float, q2: float, q3: float) -> matrix:
     # pylint: disable=invalid-name
     # pylint: disable=line-too-long
     # pylint: disable=too-many-locals
+    
+   '''
+*      y   = [roll, pitch, yaw]
+*    [phi  =   [atctan(2 * (q0 * q1 + q2 * q3)/(1 - 2 * (q1^2 + q2^2)))
+*     theta    arcsin(2(q0 * q2 - q3 * q1))
+*     psi]     arctan(2 * (q0_q3 + q1 * q2)/(1 - 2 * (q2^2 + q3^2)))]
+   '''
     H = mat(zeros((3, 7)))
     q1sqaq2sqmul2s1 = 2*(q1**2) + 2*(q2**2) - 1
     q1sqaq2sqmul2s1sq = q1sqaq2sqmul2s1**2
