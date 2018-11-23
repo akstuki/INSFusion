@@ -15,9 +15,7 @@ class attitude():
     def __init__(self):
         self._strategy = "none"
         self._data_set = None
-        self._ls_pitch = []
-        self._ls_roll = []
-        self._ls_yaw = []
+        self._att = []
 
     def load_data(self, imu_file_name: str, att_file_name: str):
         '''read pixhawk log file'''
@@ -27,9 +25,7 @@ class attitude():
         # self._data_set.load_open_imu_data()
 
     def remove_allresults(self):
-        self._ls_pitch.clear()
-        self._ls_roll.clear()
-        self._ls_yaw.clear()
+        self._att.clear()
 
     def calculate_att(self):
         '''implement in subclass'''
@@ -37,13 +33,11 @@ class attitude():
     
     def add_pitch_roll_yaw(self, pitch: float, roll: float, yaw: float):
         ''' '''
-        self._ls_pitch.append(pitch)
-        self._ls_roll.append(roll)
-        self._ls_yaw.append(yaw)
+        self._att.append([pitch, roll, yaw])
 
     def show_fig(self):
         '''show fig of calculated attitude and pixhawk attitude'''
-        if not self._ls_pitch:
+        if not self._att:
             print('no result')
             return
         # ekf_times, ekf_pitchs, ekf_rolls, ekf_yaws = self._data_set.get_ekf_attitude()
@@ -51,7 +45,7 @@ class attitude():
 
         plt.figure(self._strategy)
         plt.subplot(311)
-        pitch_deg = [c*57.2957795 for c in self._ls_pitch]
+        pitch_deg = [c[0]*57.2957795 for c in self._att]
         plt.plot(imu_times, pitch_deg, label="pitch")
         plt.ylabel('pitch(deg)')
         plt.title(self._strategy)
@@ -60,7 +54,7 @@ class attitude():
         plt.grid(linestyle='--')
 
         plt.subplot(312)
-        roll_deg = [c*57.2957795 for c in self._ls_roll]
+        roll_deg = [c[1]*57.2957795 for c in self._att]
         plt.plot(imu_times, roll_deg, label="roll")
         plt.ylabel('roll(deg)')
         plt.xlabel('time(s)')
@@ -69,7 +63,7 @@ class attitude():
         plt.grid(linestyle='--')
 
         plt.subplot(313)
-        yaw_deg = [c*57.2957795 for c in self._ls_yaw]
+        yaw_deg = [c[2]*57.2957795 for c in self._att]
         plt.plot(imu_times, yaw_deg, label="yaw")
         plt.ylabel('yaw(deg)')
         plt.xlabel('time(s)')
