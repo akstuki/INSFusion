@@ -20,8 +20,6 @@
 *
 * '''
 
-# TODO: success at matlab .m code, when migrate to python still not work now
-
 import math
 from numpy import zeros
 from numpy import matrix
