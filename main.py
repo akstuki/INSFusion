@@ -49,7 +49,7 @@ def attitude_factory(method: str) -> attitude:
 
 def main(argv: list):
     '''main.'''
-    sensorfile = r'test\OpneFlightData.csv'
+    sensorfile = r'test\09_26_14_sensor_combined_0.csv'
     attfile = r'test\09_26_14_vehicle_attitude_0.csv'
     method = "i"
 

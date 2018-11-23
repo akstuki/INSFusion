@@ -22,9 +22,9 @@ class attitude():
     def load_data(self, imu_file_name: str, att_file_name: str):
         '''read pixhawk log file'''
         self._data_set = DataSet(imu_file_name, att_file_name)
-        # self._data_set.load_imu_data()
+        self._data_set.load_imu_data()
         # self._data_set.load_px4_att()
-        self._data_set.load_open_imu_data()
+        # self._data_set.load_open_imu_data()
 
     def remove_allresults(self):
         self._ls_pitch.clear()

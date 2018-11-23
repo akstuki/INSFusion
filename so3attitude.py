@@ -132,6 +132,7 @@ class SO3Attitude(attitude):
             a_x, a_y, a_z = accel.normalised()
 
             # Estimated direction of gravity and magnetic field
+            # The direction of gravity is the Last column of R_b2e
             halfvx = self.q1q3 - self.q0q2
             halfvy = self.q0q1 + self.q2q3
             halfvz = self.q0q0 - 0.5 + self.q3q3

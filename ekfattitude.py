@@ -41,7 +41,7 @@ class EkfAttitude(attitude):
         # pylint: disable=invalid-name
         super(EkfAttitude, self).__init__()
         self._strategy = "EKF"
-       '''_Xs = [q0, q1, q2, q3, p, q, r]^T '''
+        # _Xs = [q0, q1, q2, q3, p, q, r]^T
         self._Xs = mat([1.0, 0, 0, 0, 1.0*1e-3, 1.0*1e-3, 1.0*1e-3]).T
         self._P = 1e-1*mat(eye(7, 7, dtype=float))
         self._R = 1e-3*mat(eye(3, 3, dtype=float))
@@ -67,12 +67,7 @@ class EkfAttitude(attitude):
         yaw = mag.mag_heading(pitch, roll)
         y_k = mat([roll, pitch, yaw]).T
 
-        recip_norm = 1.0/math.sqrt(self._Xs[0, 0]**2 + self._Xs[1, 0]**2 + self._Xs[2, 0]**2 \
-            + self._Xs[3, 0]**2)
-        self._Xs[0, 0] *= recip_norm
-        self._Xs[1, 0] *= recip_norm
-        self._Xs[2, 0] *= recip_norm
-        self._Xs[3, 0] *= recip_norm
+        self.nomilize_state()
 
         pitch_predit, roll_predict, yaw_predict = \
         quat2euler(self._Xs[0, 0], self._Xs[1, 0], self._Xs[2, 0], self._Xs[3, 0])
@@ -80,26 +75,36 @@ class EkfAttitude(attitude):
 
         #Update State Estimate
         self._Xs = self._Xs + k_k*(y_k - y_predict)
+        self.nomilize_state()
+
         #Update Covariance Estimate
         self._P = (mat(eye(7, 7, dtype=float))-k_k*h_k)*self._P
         self._P = (self._P+self._P.T)*0.5
 
+    def nomilize_state(self):
+        recip_norm = 1.0/math.sqrt(self._Xs[0, 0]**2 + self._Xs[1, 0]**2 + self._Xs[2, 0]**2 \
+            + self._Xs[3, 0]**2)
+        self._Xs[0, 0] *= recip_norm
+        self._Xs[1, 0] *= recip_norm
+        self._Xs[2, 0] *= recip_norm
+        self._Xs[3, 0] *= recip_norm
+
     def predict(self, d_t: float, gyros: gyroscope):
         '''time update of kalman filter'''
-        w_x = gyros._gyro_x
-        w_y = gyros._gyro_y
-        w_z = gyros._gyro_z
+        w_x = gyros._gyro_x*d_t
+        w_y = gyros._gyro_y*d_t
+        w_z = gyros._gyro_z*d_t
         q_s = self._Xs[0, 0]
         q_x = self._Xs[1, 0]
         q_y = self._Xs[2, 0]
         q_z = self._Xs[3, 0]
 
         # ---predict-----
- ''' *  q(t+1) = exp(1/2*delta_theta) * q(t)
-     *  q(t+1) = (I + delta_theta / 2) * q(t) *******Taylor Expansion
-     *  delta_theta = theta(t+1) - theta(t)
-     *              = jkbi_a * _Xs * dt
- ''' 
+        ''' *  q(t+1) = exp(1/2*delta_theta) * q(t)
+        *  q(t+1) = (I + delta_theta / 2) * q(t) *******Taylor Expansion
+        *  delta_theta = theta(t+1) - theta(t)
+        *              = jkbi_a * _Xs * dt
+        ''' 
      
         jkbi_a = mat(zeros((7, 7)))
         jkbi_a[0, :] = [0, -w_x, -w_y, -w_z, q_x, q_y, q_z]
@@ -136,28 +141,28 @@ def obsMatrix(q0: float, q1: float, q2: float, q3: float) -> matrix:
     # pylint: disable=line-too-long
     # pylint: disable=too-many-locals
     
-   '''
-*      y   = [roll, pitch, yaw]
-*    [phi  =   [atctan(2 * (q0 * q1 + q2 * q3)/(1 - 2 * (q1^2 + q2^2)))
-*     theta    arcsin(2(q0 * q2 - q3 * q1))
-*     psi]     arctan(2 * (q0_q3 + q1 * q2)/(1 - 2 * (q2^2 + q3^2)))]
-   '''
+    '''
+    *      y   = [roll, pitch, yaw]
+    *    [phi  =   [atctan(2 * (q0 * q1 + q2 * q3)/(1 - 2 * (q1^2 + q2^2)))
+    *     theta    arcsin(2(q0 * q2 - q3 * q1))
+    *     psi]     arctan(2 * (q0_q3 + q1 * q2)/(1 - 2 * (q2^2 + q3^2)))]
+    '''
     H = mat(zeros((3, 7)))
     q1sqaq2sqmul2s1 = 2*(q1**2) + 2*(q2**2) - 1
     q1sqaq2sqmul2s1sq = q1sqaq2sqmul2s1**2
     q0q1aq2q3mul2 = 2*q0*q1 + 2*q2*q3
     q0q1aq2q3mul2sq = q0q1aq2q3mul2**2
-    H[0, 0] = -(2*q1)/((q0q1aq2q3mul2sq/q1sqaq2sqmul2s1sq + 1)*(q1sqaq2sqmul2s1))
-    H[0, 1] = -((2*q0)/(q1sqaq2sqmul2s1) - (4*q1*(q0q1aq2q3mul2))/q1sqaq2sqmul2s1sq)/(q0q1aq2q3mul2sq/q1sqaq2sqmul2s1sq + 1)
-    H[0, 2] = -((2*q3)/(q1sqaq2sqmul2s1) - (4*q2*(q0q1aq2q3mul2))/q1sqaq2sqmul2s1sq)/(q0q1aq2q3mul2sq/q1sqaq2sqmul2s1sq + 1)
-    H[0, 3] = -(2*q2)/((q0q1aq2q3mul2sq/q1sqaq2sqmul2s1sq + 1)*(q1sqaq2sqmul2s1))
+    H[1, 0] = -(2*q1)/((q0q1aq2q3mul2sq/q1sqaq2sqmul2s1sq + 1)*(q1sqaq2sqmul2s1))
+    H[1, 1] = -((2*q0)/(q1sqaq2sqmul2s1) - (4*q1*(q0q1aq2q3mul2))/q1sqaq2sqmul2s1sq)/(q0q1aq2q3mul2sq/q1sqaq2sqmul2s1sq + 1)
+    H[1, 2] = -((2*q3)/(q1sqaq2sqmul2s1) - (4*q2*(q0q1aq2q3mul2))/q1sqaq2sqmul2s1sq)/(q0q1aq2q3mul2sq/q1sqaq2sqmul2s1sq + 1)
+    H[1, 3] = -(2*q2)/((q0q1aq2q3mul2sq/q1sqaq2sqmul2s1sq + 1)*(q1sqaq2sqmul2s1))
     q0q2sq1q3mul2 = 2*q0*q2 - 2*q1*q3
     q0q2sq1q3mul2sq = q0q2sq1q3mul2**2
     q0q2sq1q3mul2sq_subby1 = (1 - q0q2sq1q3mul2sq)**0.5
-    H[1, 0] = (2*q2)/q0q2sq1q3mul2sq_subby1
-    H[1, 1] = -(2*q3)/q0q2sq1q3mul2sq_subby1
-    H[1, 2] = (2*q0)/q0q2sq1q3mul2sq_subby1
-    H[1, 3] = -(2*q1)/q0q2sq1q3mul2sq_subby1
+    H[0, 0] = (2*q2)/q0q2sq1q3mul2sq_subby1
+    H[0, 1] = -(2*q3)/q0q2sq1q3mul2sq_subby1
+    H[0, 2] = (2*q0)/q0q2sq1q3mul2sq_subby1
+    H[0, 3] = -(2*q1)/q0q2sq1q3mul2sq_subby1
     q0q3aq1q2mul2 = 2*q0*q3 + 2*q1*q2
     q0q3aq1q2mul2sq = q0q3aq1q2mul2**2
     q2saq3smul2s1 = 2*(q2**2) + 2*(q3**2) - 1
