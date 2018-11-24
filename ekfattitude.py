@@ -6,6 +6,17 @@
 * mail    : 309905109@qq.com
 * history : 2018/09/26  1.0  new
 '''
+'''
+Model
+ states:
+   attitude quaternion
+   Delta Angle bias - rad (X,Y,Z)
+
+ measurements:
+  attitude euler angle get by below meas:
+      ax, ay, az (acceleration body)
+      XYZ magnetic flux
+'''
 
 '''Steps for EKF: 
 *  Prediction: 
