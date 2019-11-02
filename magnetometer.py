@@ -7,6 +7,7 @@
 * history : 2018/09/26  1.0  new
 '''
 import math
+
 class magnetometer():
     """docstring for magnetometer"""
     def __init__(self):
@@ -21,7 +22,7 @@ class magnetometer():
     def to_list(self) -> list:
         return [self._magn_x, self._magn_y, self._magn_z]
 
-    def is_valid(self):
+    def is_valid(self) -> bool:
         if math.isclose(self._magn_x, 0.0) and math.isclose(self._magn_y, 0.0) and math.isclose(self._magn_z, 0.0):
             return False
         else:

@@ -7,6 +7,7 @@
 * history : 2018/09/26  1.0  new
 '''
 import math
+from typing import NoReturn
 
 class accelerometer():
     """docstring for accelerometer"""
@@ -20,13 +21,13 @@ class accelerometer():
     	self._accel_y = ay
     	self._accel_z = az
 
-    def is_valid(self):
+    def is_valid(self) -> bool:
         if math.isclose(self._accel_x, 0.0) and math.isclose(self._accel_y, 0.0) and math.isclose(self._accel_z, 0.0):
             return False
         else:
             return True
 
-    def reverse(self):
+    def reverse(self) -> NoReturn:
         self._accel_x = -self._accel_x
         self._accel_y = -self._accel_y
         self._accel_z = -self._accel_z
@@ -45,7 +46,7 @@ class accelerometer():
         roll = math.atan2(self._accel_x, -self._accel_z)
         return pitch, roll
 
-def main():
+def main() -> NoReturn:
     '''test'''
     accel = accelerometer(0, 0, -9.8)
     print(accel.acc_att())

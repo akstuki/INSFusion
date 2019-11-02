@@ -15,6 +15,7 @@ from intattitude import IntAttitude
 from comattitude import CompAttitude
 from ekfattitude import EkfAttitude
 from so3attitude import SO3Attitude
+from typing import NoReturn
 
 def attitude_factory(method: str) -> attitude:
     '''
@@ -35,7 +36,7 @@ def attitude_factory(method: str) -> attitude:
         pass
     return att
 
-def test_all():
+def test_all() -> NoReturn:
     '''main.'''
     sensorfile = r'test\09_26_14_sensor_combined_0.csv'
     attfile = r'test\09_26_14_vehicle_attitude_0.csv'

@@ -12,6 +12,7 @@ from lib.quaternion import quat2euler
 from accelerometer import accelerometer
 from gyroscope import gyroscope
 from magnetometer import magnetometer
+from typing import NoReturn
 
 class DataSet():
     """docstring for DataSet"""
@@ -31,7 +32,7 @@ class DataSet():
         self._ls_gyro = []
         self._ls_mage = []
 
-    def load_open_imu_data(self):
+    def load_open_imu_data(self) -> NoReturn:
         '''read data from px4 vehicle attitude.csv log file'''
         # (0-4)   timestamp   gyro_rad[0] gyro_rad[1] gyro_rad[2] gyro_integral_dt
         # (5-7)   accelerometer_timestamp_relative    accelerometer_m_s2[0]   accelerometer_m_s2[1]
@@ -61,7 +62,7 @@ class DataSet():
                 self._ls_gyro.append(gyro)
                 self._ls_mage.append(magn)
 
-    def load_imu_data(self):
+    def load_imu_data(self) -> NoReturn:
         '''read data from px4 vehicle attitude.csv log file'''
         # (0-4)   timestamp   gyro_rad[0] gyro_rad[1] gyro_rad[2] gyro_integral_dt
         # (5-7)   accelerometer_timestamp_relative    accelerometer_m_s2[0]   accelerometer_m_s2[1]
@@ -88,7 +89,7 @@ class DataSet():
                 self._ls_gyro.append(gyro)
                 self._ls_mage.append(magn)
 
-    def remove_imus(self):
+    def remove_imus(self) -> NoReturn:
         self._lsTimes.clear()
         self._lsDeltT.clear()
         self._ls_accel.clear()
@@ -113,7 +114,7 @@ class DataSet():
         '''return sensors timestamp'''
         return self._lsTimes
 
-    def load_px4_att(self):
+    def load_px4_att(self) -> NoReturn:
         '''' timestamp rollspeed   pitchspeed  yawspeed    q[0]    q[1]    q[2]    q[3]'''
         if not os.path.exists(self._attitude_filename):
             return
@@ -132,7 +133,7 @@ class DataSet():
                 self._lsEkfRoll.append(theta)
                 self._lsEkfYaw.append(psi)
 
-    def remove_px4_atts(self):
+    def remove_px4_atts(self) -> NoReturn:
         self._lsEkfTimes.clear()
         self._lsEkfPitch.clear()
         self._lsEkfRoll.clear()

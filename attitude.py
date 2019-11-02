@@ -9,6 +9,7 @@
 import math
 import matplotlib.pyplot as plt
 from data_set import DataSet
+from typing import NoReturn
 
 class attitude():
     """docstring for attitude"""
@@ -17,25 +18,25 @@ class attitude():
         self._data_set = None
         self._att = []
 
-    def load_data(self, imu_file_name: str, att_file_name: str):
+    def load_data(self, imu_file_name: str, att_file_name: str) -> NoReturn:
         '''read pixhawk log file'''
         self._data_set = DataSet(imu_file_name, att_file_name)
         self._data_set.load_imu_data()
         # self._data_set.load_px4_att()
         # self._data_set.load_open_imu_data()
 
-    def remove_allresults(self):
+    def remove_allresults(self) -> NoReturn:
         self._att.clear()
 
-    def calculate_att(self):
+    def calculate_att(self) -> NoReturn:
         '''implement in subclass'''
         self.remove_allresults()
     
-    def add_pitch_roll_yaw(self, pitch: float, roll: float, yaw: float):
+    def add_pitch_roll_yaw(self, pitch: float, roll: float, yaw: float) -> NoReturn:
         ''' '''
         self._att.append([pitch, roll, yaw])
 
-    def show_fig(self):
+    def show_fig(self) -> NoReturn:
         '''show fig of calculated attitude and pixhawk attitude'''
         if not self._att:
             print('no result')
@@ -73,7 +74,7 @@ class attitude():
 
         plt.show()
 
-    def test(self):
+    def test(self) -> NoReturn:
         '''main test'''
         sensorfile = r'test\09_26_14_sensor_combined_0.csv'
         attfile = r'test\09_26_14_vehicle_attitude_0.csv'
@@ -95,7 +96,7 @@ def mag_heading(mag: list, roll: float, pitch: float) -> float:
     mag[1]*math.sin(roll)*math.sin(pitch)+mag[2]*math.sin(roll)*math.cos(pitch)
     return -math.atan2(mn_x, mn_y)
 
-def main():
+def main() -> NoReturn:
     '''test'''
     # att = attitude()
     pass

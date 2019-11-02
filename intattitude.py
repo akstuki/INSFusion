@@ -6,8 +6,9 @@
 * mail    : 309905109@qq.com
 * history : 2018/09/26  1.0  new
 '''
-
+from typing import NoReturn
 from attitude import attitude
+
 class IntAttitude(attitude):
     """docstring for ClassName"""
     _phi0 = 0
@@ -17,7 +18,7 @@ class IntAttitude(attitude):
         super(IntAttitude, self).__init__()
         self._strategy = "Int method"
 
-    def calculate_att(self):
+    def calculate_att(self) -> NoReturn:
         '''integration main cycle'''
         imu_data = self._data_set.get_sensors_imu()
         for imu in imu_data:
@@ -31,7 +32,7 @@ class IntAttitude(attitude):
         self._phi0 = self._phi0 + d_t*gyros._gyro_y
         self._psi0 = self._psi0 + d_t*gyros._gyro_z
 
-def main():
+def main() -> NoReturn:
     '''test main'''
     att = IntAttitude()
     att.test()

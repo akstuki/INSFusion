@@ -16,6 +16,7 @@ from lib.quaternion import quat2euler
 from accelerometer import accelerometer
 from gyroscope import gyroscope
 from magnetometer import magnetometer
+from typing import NoReturn
 
 class SO3Attitude(attitude):
     """docstring for SO3Attitude"""
@@ -55,7 +56,7 @@ class SO3Attitude(attitude):
         self._two_ki = 0.05
         self._two_kp = 1.0
 
-    def calculate_att(self):
+    def calculate_att(self) -> NoReturn:
         '''so3 main cycle'''
         imu_data = self._data_set.get_sensors_imu()
         for imu in imu_data:
@@ -78,7 +79,7 @@ class SO3Attitude(attitude):
             pitch, roll, yaw = quat2euler(self.q_0, self.q_1, self.q_2, self.q_3)
         return pitch, roll, yaw
     
-    def calibrate_gyros(self, gyros: gyroscope):
+    def calibrate_gyros(self, gyros: gyroscope) -> NoReturn:
         ''' '''
         self._gyro_offset_x += gyros._gyro_x
         self._gyro_offset_y += gyros._gyro_y
@@ -144,7 +145,7 @@ class SO3Attitude(attitude):
             halfez += a_x * halfvy - a_y * halfvx
         return halfex, halfey, halfez
 
-    def normalise_quaternion(self):
+    def normalise_quaternion(self) -> NoReturn:
         '''Normalise quaternion'''
         reciprocal_norm = 1.0/math.sqrt(self.q_0**2 + self.q_1**2 + self.q_2**2 + self.q_3**2)
         self.q_0 *= reciprocal_norm
@@ -164,7 +165,7 @@ class SO3Attitude(attitude):
         self.q2q3 = self.q_2 * self.q_3
         self.q3q3 = self.q_3 * self.q_3
 
-    def update_quaternion(self, g_x: float, g_y: float, g_z: float, d_t: float):
+    def update_quaternion(self, g_x: float, g_y: float, g_z: float, d_t: float) -> NoReturn:
         '''Time update of quaternion.'''
         # ! q_k = q_{k-1} + dt*\dot{q}
         # ! \dot{q} = 0.5*q \otimes P(\omega)
@@ -179,7 +180,7 @@ class SO3Attitude(attitude):
         self.q_2 += d_t*self.dq2
         self.q_3 += d_t*self.dq3
 
-    def gyro_pid(self, gyros: list, halfex: float, halfey: float, halfez: float, d_t: float):
+    def gyro_pid(self, gyros: list, halfex: float, halfey: float, halfez: float, d_t: float) -> NoReturn:
         '''pi feedback to gyro'''
         # pylint: disable=too-many-arguments
         if math.isclose(halfex, 0.0) or math.isclose(halfey, 0.0) or math.isclose(halfez, 0.0):
@@ -206,7 +207,7 @@ class SO3Attitude(attitude):
 
         return gyros[0], gyros[1], gyros[2]
 
-    def so3_update(self, gyros: list, accel: accelerometer, maga: magnetometer, d_t: float):
+    def so3_update(self, gyros: list, accel: accelerometer, maga: magnetometer, d_t: float) -> NoReturn:
         '''attitude update main cycle'''
         halfex = 0.0
         halfey = 0.0
@@ -224,7 +225,7 @@ class SO3Attitude(attitude):
         self.update_quaternion(g_x, g_y, g_z, d_t)
         self.normalise_quaternion()
 
-    def so3_init(self, accels: accelerometer, mags: magnetometer):
+    def so3_init(self, accels: accelerometer, mags: magnetometer) -> NoReturn:
         '''caculate init attitude using accel and mag, then initlize quaternion'''
         init_pitch, init_roll = accels.acc_att()
         init_yaw = mags.mag_heading(init_pitch, init_roll)
@@ -251,7 +252,7 @@ class SO3Attitude(attitude):
         self.q2q3 = self.q_2 * self.q_3
         self.q3q3 = self.q_3 * self.q_3
 
-def main():
+def main() -> NoReturn:
     '''test main'''
     att = SO3Attitude()
     att.test()

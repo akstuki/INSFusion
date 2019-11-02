@@ -10,6 +10,7 @@
 from attitude import attitude
 from attitude import acc_att
 from attitude import mag_heading
+from typing import NoReturn
 
 class AccAttitude(attitude):
     """docstring for ClassName"""
@@ -27,7 +28,7 @@ class AccAttitude(attitude):
             yaw = magn.mag_heading(roll, pitch)
             self.add_pitch_roll_yaw(pitch, roll, yaw)
 
-def main():
+def main() -> NoReturn:
     '''test main'''
     att = AccAttitude()
     att.test()

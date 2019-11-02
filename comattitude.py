@@ -10,6 +10,7 @@
 from attitude import attitude
 from attitude import acc_att
 from attitude import mag_heading
+from typing import NoReturn
 
 class CompAttitude(attitude):
     """docstring for ClassName"""
@@ -23,14 +24,14 @@ class CompAttitude(attitude):
         self._strategy = "comp method"
         self._a = a
 
-    def calculate_att(self):
+    def calculate_att(self) -> NoReturn:
         '''complementary filter main cycle'''
         imu_data = self._data_set.get_sensors_imu()
         for imu in imu_data:
             self.filter_pitch_roll_yaw(imu)
             self.add_pitch_roll_yaw(self._theta0, self._phi0, self._psi0)
 
-    def filter_pitch_roll_yaw(self, imu:tuple):
+    def filter_pitch_roll_yaw(self, imu:tuple) -> NoReturn:
         accel = imu[2]
         pitch, roll = accel.acc_att()
         d_t = imu[0]
@@ -46,7 +47,7 @@ class CompAttitude(attitude):
         x_hat = self._a*(last_hat + dt*gyro)+(1-self._a)*obs
         return x_hat
 
-def main():
+def main() -> NoReturn:
     '''test main'''
     att = CompAttitude(0.7)
     att.test()

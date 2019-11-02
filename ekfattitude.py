@@ -43,6 +43,7 @@ from attitude import mag_heading
 from accelerometer import accelerometer
 from gyroscope import gyroscope
 from magnetometer import magnetometer
+from typing import NoReturn
 
 class EkfAttitude(attitude):
     """docstring for EkfAttitude"""
@@ -56,14 +57,14 @@ class EkfAttitude(attitude):
         self._R = 1e-3*mat(eye(3, 3, dtype=float))
         self._Q = 1e-7*mat(eye(7, 7, dtype=float))
 
-    def reset(self):
+    def reset(self) -> NoReturn:
         '''reset kalman filter to init state'''
         self._Xs = mat([1.0, 0, 0, 0, 1.0*1e-3, 1.0*1e-3, 1.0*1e-3]).T
         self._P = 1e-1*mat(eye(7, 7, dtype=float))
         self._R = 1e-3*mat(eye(3, 3, dtype=float))
         self._Q = 1e-7*mat(eye(7, 7, dtype=float))
 
-    def accel_correct(self, accel: accelerometer, mag: magnetometer):
+    def accel_correct(self, accel: accelerometer, mag: magnetometer) -> NoReturn:
         '''measurement update - accel'''
         # pylint: disable=too-many-locals
         h_k = obsMatrix(self._Xs[0, 0], self._Xs[1, 0], self._Xs[2, 0], self._Xs[3, 0])
@@ -90,7 +91,7 @@ class EkfAttitude(attitude):
         self._P = (mat(eye(7, 7, dtype=float))-k_k*h_k)*self._P
         self._P = (self._P+self._P.T)*0.5
 
-    def nomilize_state(self):
+    def nomilize_state(self) -> NoReturn:
         recip_norm = 1.0/math.sqrt(self._Xs[0, 0]**2 + self._Xs[1, 0]**2 + self._Xs[2, 0]**2 \
             + self._Xs[3, 0]**2)
         self._Xs[0, 0] *= recip_norm
@@ -98,7 +99,7 @@ class EkfAttitude(attitude):
         self._Xs[2, 0] *= recip_norm
         self._Xs[3, 0] *= recip_norm
 
-    def predict(self, d_t: float, gyros: gyroscope):
+    def predict(self, d_t: float, gyros: gyroscope) -> NoReturn:
         '''time update of kalman filter'''
         w_x = gyros._gyro_x*d_t
         w_y = gyros._gyro_y*d_t
@@ -127,7 +128,7 @@ class EkfAttitude(attitude):
         #predicted covariance estimate
         self._P = f_k*self._P*(f_k.T) + self._Q
 
-    def calculate_att(self):
+    def calculate_att(self) -> NoReturn:
         '''kalman filter main cycle'''
         imu_data = self._data_set.get_sensors_imu()
         for imu in imu_data:
@@ -182,7 +183,7 @@ def obsMatrix(q0: float, q1: float, q2: float, q3: float) -> matrix:
     H[2, 3] = -((2*q0)/(q2saq3smul2s1) - (4*q3*(q0q3aq1q2mul2))/q2saq3smul2s1sq)/(q0q3aq1q2mul2sq/q2saq3smul2s1sq + 1)
     return H
 
-def main():
+def main() -> NoReturn:
     '''main test'''
     att = EkfAttitude()
     att.test()
